@@ -1,0 +1,72 @@
+{
+  "definition": "CHG-53-DEF",
+  "header": {
+    "pco_number": {"status": "known", "value": "PCO-001"},
+    "date": {"status": "known", "value": "2026-11-02"},
+    "project": {"status": "known", "value": "Worked example (design section 6)"},
+    "project_address": {"status": "unknown", "question": "What is the project address?"},
+    "owner": {"status": "unknown", "question": "Who is the client?"},
+    "contract_reference": {"status": "unknown", "question": "Which contract does this change?"},
+    "location": {"status": "unknown", "question": "Where on the project is the work?"},
+    "trades": {"status": "known", "value": ["Carpentry", "Electrical"]},
+    "change_event_ref": {"status": "unknown", "question": "Which change event does this PCO belong to?"},
+    "requested_approval_date": {"status": "unknown", "question": "By what date is the client's decision needed?"},
+    "cause_category": {"status": "unknown", "question": "Which FCM-03 change type is this?"}
+  },
+  "description": {"status": "known", "value": "Added carpentry and electrical work, as in the worked example."},
+  "reason": {"status": "unknown", "question": "Why is this change needed?"},
+  "scope": {
+    "inclusions": {"status": "known", "value": ["Carpentry labor", "Electrical work per the subcontractor's quote", "Materials"]},
+    "exclusions": {"status": "unknown", "question": "What should this change exclude?"},
+    "assumptions": ["Materials estimate is sized to cover tax."]
+  },
+  "pricing_basis": "lump_sum",
+  "nte_amount": {"status": "not_applicable", "reason": "Lump sum, with no not-to-exceed amount."},
+  "cost_lines": [
+    {
+      "category": "labor",
+      "description": "Carpentry",
+      "quantity": {"status": "known", "value": 8},
+      "unit": {"status": "known", "value": "HR"},
+      "unit_price": {"status": "known", "value": 90},
+      "basis": "hours_x_rate",
+      "evidence": {
+        "source": "rate_table",
+        "reference": {"status": "known", "value": "company/pricing/rates.yaml, labor_billing_rates, Carpenter"},
+        "date": {"status": "not_applicable", "reason": "Current company rate table."}
+      }
+    },
+    {
+      "category": "subcontractors",
+      "description": "Electrical",
+      "quantity": {"status": "known", "value": 1},
+      "unit": {"status": "known", "value": "LS"},
+      "unit_price": {"status": "known", "value": 850},
+      "basis": "quote",
+      "evidence": {
+        "source": "supplied_quote",
+        "reference": {"status": "unknown", "question": "Which electrical quote is this from?"},
+        "date": {"status": "unknown", "question": "What is the date of the electrical quote?"}
+      }
+    },
+    {
+      "category": "materials",
+      "description": "Materials",
+      "quantity": {"status": "known", "value": 1},
+      "unit": {"status": "known", "value": "LS"},
+      "unit_price": {"status": "known", "value": 600},
+      "basis": "estimate",
+      "evidence": {
+        "source": "pm_notes",
+        "reference": {"status": "known", "value": "PM's notes"},
+        "date": {"status": "known", "value": "2026-11-02"}
+      }
+    }
+  ],
+  "schedule": {
+    "extension_days": {"status": "known", "value": 0},
+    "contract_duration_days": {"status": "not_applicable", "reason": "No schedule extension, so the threshold doesn't apply."}
+  },
+  "attachments": ["Electrical quote"],
+  "open_questions": ["What is the project address, and who is the client?", "Why is this change needed?"]
+}

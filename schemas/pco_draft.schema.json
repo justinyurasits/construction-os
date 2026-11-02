@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Potential change order: structured draft",
+  "description": "Step 1 of the drafting pipeline (design section 7). The draft proposes; code prices it. Anything not known is an explicit unknown field with a question, never a missing value or a guess.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["definition", "header", "description", "reason", "scope", "pricing_basis", "nte_amount", "cost_lines", "schedule", "attachments", "open_questions"],
+  "properties": {
+    "definition": {"const": "CHG-53-DEF"},
+    "header": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["pco_number", "date", "project", "project_address", "owner", "contract_reference", "location", "trades", "change_event_ref", "requested_approval_date", "cause_category"],
+      "properties": {
+        "pco_number": {"$ref": "#/$defs/text"},
+        "date": {"$ref": "#/$defs/date"},
+        "project": {"$ref": "#/$defs/text"},
+        "project_address": {"$ref": "#/$defs/text"},
+        "owner": {"$ref": "#/$defs/text"},
+        "contract_reference": {"$ref": "#/$defs/text"},
+        "location": {"$ref": "#/$defs/text"},
+        "trades": {"$ref": "#/$defs/text_list"},
+        "change_event_ref": {"$ref": "#/$defs/text"},
+        "requested_approval_date": {"$ref": "#/$defs/date"},
+        "cause_category": {"$ref": "#/$defs/text"}
+      }
+    },
+    "description": {"$ref": "#/$defs/text"},
+    "reason": {"$ref": "#/$defs/text"},
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inclusions", "exclusions", "assumptions"],
+      "properties": {
+        "inclusions": {"$ref": "#/$defs/text_list"},
+        "exclusions": {"$ref": "#/$defs/text_list"},
+        "assumptions": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "pricing_basis": {"enum": ["lump_sum", "T&M", "CCD"]},
+    "nte_amount": {"$ref": "#/$defs/number"},
+    "cost_lines": {"type": "array", "items": {"$ref": "#/$defs/cost_line"}},
+    "schedule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["extension_days", "contract_duration_days"],
+      "properties": {
+        "extension_days": {"$ref": "#/$defs/nonnegative_number"},
+        "contract_duration_days": {"$ref": "#/$defs/nonnegative_number"}
+      }
+    },
+    "attachments": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "open_questions": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "unknown": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "question"],
+      "properties": {"status": {"const": "unknown"}, "question": {"type": "string", "minLength": 1}}
+    },
+    "not_applicable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reason"],
+      "properties": {"status": {"const": "not_applicable"}, "reason": {"type": "string", "minLength": 1}}
+    },
+    "text": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["status", "value"], "properties": {"status": {"const": "known"}, "value": {"type": "string", "minLength": 1}}},
+      {"$ref": "#/$defs/unknown"}, {"$ref": "#/$defs/not_applicable"}
+    ]},
+    "date": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["status", "value"], "properties": {"status": {"const": "known"}, "value": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}}},
+      {"$ref": "#/$defs/unknown"}, {"$ref": "#/$defs/not_applicable"}
+    ]},
+    "text_list": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["status", "value"], "properties": {"status": {"const": "known"}, "value": {"type": "array", "items": {"type": "string", "minLength": 1}}}},
+      {"$ref": "#/$defs/unknown"}, {"$ref": "#/$defs/not_applicable"}
+    ]},
+    "number": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["status", "value"], "properties": {"status": {"const": "known"}, "value": {"type": "number"}}},
+      {"$ref": "#/$defs/unknown"}, {"$ref": "#/$defs/not_applicable"}
+    ]},
+    "nonnegative_number": {"oneOf": [
+      {"type": "object", "additionalProperties": false, "required": ["status", "value"], "properties": {"status": {"const": "known"}, "value": {"type": "number", "minimum": 0}}},
+      {"$ref": "#/$defs/unknown"}, {"$ref": "#/$defs/not_applicable"}
+    ]},
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "reference", "date"],
+      "properties": {
+        "source": {"enum": ["rate_table", "supplied_quote", "pm_notes", "historical_record", "estimate"]},
+        "reference": {"$ref": "#/$defs/text"},
+        "date": {"$ref": "#/$defs/date"}
+      }
+    },
+    "cost_line": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["category", "description", "quantity", "unit", "unit_price", "basis", "evidence"],
+      "properties": {
+        "category": {"enum": ["labor", "materials", "subcontractors", "equipment", "general_conditions", "permits_and_fees"]},
+        "description": {"type": "string", "minLength": 1},
+        "quantity": {"$ref": "#/$defs/number"},
+        "unit": {"$ref": "#/$defs/text"},
+        "unit_price": {"$ref": "#/$defs/number"},
+        "basis": {"enum": ["hours_x_rate", "quote", "estimate", "rate_x_duration", "weeks_x_rate", "actual_fee"]},
+        "evidence": {"$ref": "#/$defs/evidence"}
+      }
+    }
+  }
+}
