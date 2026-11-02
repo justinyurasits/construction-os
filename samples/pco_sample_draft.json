@@ -66,14 +66,65 @@
         "Materials"
       ]
     },
-    "exclusions": {
-      "status": "unknown",
-      "question": "What should this change exclude?"
-    },
     "assumptions": [
       "Materials estimate is sized to cover tax."
-    ]
+    ],
+    "deleted_scope": {
+      "status": "known",
+      "value": []
+    }
   },
+  "clarifications_and_exclusions": [
+    {
+      "prompt": "concealed_conditions",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Concealed conditions: to be confirmed."
+    },
+    {
+      "prompt": "finish_limited",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Finish limited to affected areas: to be confirmed."
+    },
+    {
+      "prompt": "owner_upgrades",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Owner upgrades: to be confirmed."
+    },
+    {
+      "prompt": "hazardous_materials",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Hazardous materials: to be confirmed."
+    },
+    {
+      "prompt": "permits",
+      "trades": [
+        "electrical"
+      ],
+      "disposition": "open_question",
+      "text": "Electrical permit: to be confirmed."
+    },
+    {
+      "prompt": "permits",
+      "trades": [
+        "carpentry",
+        "materials"
+      ],
+      "disposition": "not_applicable",
+      "text": "No permit for this trade."
+    }
+  ],
   "pricing_basis": "lump_sum",
   "nte_amount": {
     "status": "not_applicable",
@@ -100,13 +151,23 @@
         "source": "rate_table",
         "reference": {
           "status": "known",
-          "value": "company/pricing/rates.yaml, labor_billing_rates, Carpenter"
+          "value": "Company labor rate, Carpenter"
         },
         "date": {
           "status": "not_applicable",
           "reason": "Current company rate table."
         }
-      }
+      },
+      "trade": "carpentry",
+      "division": {
+        "status": "known",
+        "value": "06"
+      },
+      "attachment": {
+        "status": "not_applicable",
+        "reason": "No attachment for this line."
+      },
+      "permit": "not_applicable"
     },
     {
       "category": "subcontractors",
@@ -134,7 +195,17 @@
           "status": "unknown",
           "question": "What is the date of the electrical quote?"
         }
-      }
+      },
+      "trade": "electrical",
+      "division": {
+        "status": "known",
+        "value": "26"
+      },
+      "attachment": {
+        "status": "known",
+        "value": "A"
+      },
+      "permit": "not_stated"
     },
     {
       "category": "materials",
@@ -162,7 +233,17 @@
           "status": "known",
           "value": "2026-11-02"
         }
-      }
+      },
+      "trade": "materials",
+      "division": {
+        "status": "unknown",
+        "question": "Which division do these materials belong to?"
+      },
+      "attachment": {
+        "status": "not_applicable",
+        "reason": "No attachment for this line."
+      },
+      "permit": "not_applicable"
     }
   ],
   "contract_terms": {
@@ -185,6 +266,18 @@
     "contract_duration_days": {
       "status": "not_applicable",
       "reason": "No schedule extension, so the threshold doesn't apply."
+    },
+    "critical_path": {
+      "status": "known",
+      "value": "no"
+    },
+    "completion_date": {
+      "status": "known",
+      "value": "No change"
+    },
+    "authorization_by": {
+      "status": "unknown",
+      "question": "By what date must the client authorize this for the schedule to hold?"
     }
   },
   "signatures": {
@@ -195,7 +288,10 @@
     ]
   },
   "attachments": [
-    "Electrical quote"
+    {
+      "letter": "A",
+      "description": "Electrical quote"
+    }
   ],
   "open_questions": [
     "What is the project address, and who is the client?",

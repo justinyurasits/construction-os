@@ -43,12 +43,28 @@ def table_with(path, label):
 
 
 def summary_rows(path):
-    table = table_with(path, "Description")
+    table = table_with(path, "Div")
     rows = {}
     for row in table.rows[1:]:
-        if row.cells[0]._tc is row.cells[4]._tc:
-            rows[row.cells[0].text] = row.cells[5].text
+        if row.cells[0]._tc is row.cells[6]._tc:
+            rows[row.cells[0].text] = row.cells[7].text
     return rows
+
+
+def needed(path):
+    """The lines of the box at the top."""
+    text = document_text(path).split("\n")
+    if "NEEDED BEFORE SENDING" not in text:
+        return []
+    start = text.index("NEEDED BEFORE SENDING") + 1
+    out = []
+    for line in text[start:]:
+        if not line.startswith("•"):
+            if line.strip():
+                break
+            continue
+        out.append(line)
+    return out
 
 
 def signers(path):
@@ -165,13 +181,13 @@ def test_contract_term_sets_the_presentation(tmp_path, package):
 
 def test_signatures_before_client(tmp_path, package):
     path = rendered(tmp_path, package).path
-    assert signers(path) == ["Executive co-signature", "Client", "Contractor project manager"]
+    assert signers(path) == ["Executive co-signature", "Client", "Prepared by"]
 
 
 def test_signatures_follow_the_setting_when_after_client(tmp_path, package):
     package.values["AUTH-WRITTEN.cosign_timing"] = "after_client"
     result = rendered(tmp_path, package)
-    assert signers(result.path) == ["Client", "Executive co-signature", "Contractor project manager"]
+    assert signers(result.path) == ["Client", "Executive co-signature", "Prepared by"]
     assert "signature_order" in result.kinds()
 
 
@@ -206,15 +222,137 @@ def test_template_has_no_identity_typed_in(package):
         assert word not in text
 
 
-def test_unknowns_are_shown_and_flagged_never_invented(tmp_path, package):
+def test_unknowns_are_flagged_never_invented(tmp_path, package):
     result = rendered(tmp_path, package, "test1")
-    text = document_text(result.path)
-    assert "To be confirmed" in text
     assert any("Who is the client?" in f.message for f in result.flags if f.kind == "missing_input")
 
 
+def test_unconfirmed_header_fields_move_to_the_needed_box(tmp_path, package):
+    path = rendered(tmp_path, package, "test1").path
+    table = Document(path).tables[0]
+    grid = "\n".join(cell.text for row in table.rows for cell in row.cells)
+    assert "Client" not in grid and "To be confirmed" not in grid and "Date" in grid
+    assert any(line.startswith("•  Client: Who is the client?") for line in needed(path))
+
+
+def test_no_needed_box_when_everything_is_confirmed(tmp_path, package):
+    package.values["MARKUP-PRESENTATION"] = "itemized"
+    def edit(d):
+        known = {"status": "known", "value": "Known"}
+        for name, value in d["header"].items():
+            if value["status"] == "unknown":
+                d["header"][name] = {"status": "known", "value": "2026-11-30"} if name == "requested_approval_date" else known
+        d["schedule"]["authorization_by"] = {"status": "known", "value": "2026-11-20"}
+        d["clarifications_and_exclusions"] = [i for i in d["clarifications_and_exclusions"] if i["disposition"] != "open_question"]
+        for line in d["cost_lines"]:
+            line["evidence"]["date"] = {"status": "known", "value": "2026-11-01"}
+            line["permit"] = "included_in_quote" if line["trade"] == "electrical" else line["permit"]
+    assert needed(rendered(tmp_path, package, "test1", edit).path) == []
+
+
+# New sections
+
+def test_clarifications_show_and_skip_not_applicable(tmp_path, package):
+    text = document_text(rendered(tmp_path, package, "test1").path)
+    assert "Concealed conditions found on opening" in text and "No permit for this trade" not in text
+
+
+def test_every_prompt_for_every_trade_is_checked(tmp_path, package):
+    def edit(d):
+        d["clarifications_and_exclusions"] = [i for i in d["clarifications_and_exclusions"] if i["prompt"] != "hazardous_materials"]
+    flags = [f.message for f in rendered(tmp_path, package, "test1", edit).flags if f.kind == "prompt_not_considered"]
+    assert any("Hazardous materials: not considered for electrical" in m for m in flags)
+
+
+def test_prompts_all_considered_in_the_samples(tmp_path, package):
+    for name in DRAFTS:
+        assert "prompt_not_considered" not in rendered(tmp_path, package, name).kinds()
+
+
+def test_deleted_scope_none(tmp_path, package):
+    text = document_text(rendered(tmp_path, package, "test1").path).split("\n")
+    assert "•  None" in text[text.index("Deleted") + 1]
+
+
+def test_permit_trade_raises_a_question(tmp_path, package):
+    result = rendered(tmp_path, package, "test1")
+    assert any("Electrical permit" in f.message for f in result.flags if f.kind == "permit_question")
+    assert any("Electrical permit" in line for line in needed(result.path))
+
+
+def test_no_permit_question_when_the_quote_includes_it(tmp_path, package):
+    def edit(d):
+        d["cost_lines"][0]["permit"] = "included_in_quote"
+    assert "permit_question" not in rendered(tmp_path, package, "test1", edit).kinds()
+
+
+def test_non_permit_trade_raises_no_question(tmp_path, package):
+    def edit(d):
+        d["cost_lines"] = [line for line in d["cost_lines"] if line["trade"] != "electrical"]
+    assert "permit_question" not in rendered(tmp_path, package, "test1", edit).kinds()
+
+
+def test_pricing_line_has_division_quote_and_letter(tmp_path, package):
+    table = table_with(rendered(tmp_path, package, "test1").path, "Div")
+    first = [cell.text for cell in table.rows[1].cells]
+    assert first[0] == "26" and "Electrical subcontractor quote" in first[2] and first[3] == "A"
+
+
+def test_line_pointing_to_a_missing_attachment_is_flagged(tmp_path, package):
+    def edit(d):
+        d["cost_lines"][0]["attachment"] = {"status": "known", "value": "Z"}
+    assert "attachment_letter" in rendered(tmp_path, package, "test1", edit).kinds()
+
+
+def test_attachments_checklist_has_letters(tmp_path, package):
+    text = document_text(rendered(tmp_path, package, "test1").path)
+    assert "☐  Attachment A — Electrical subcontractor quote" in text and "Attachment C" in text
+
+
+def test_schedule_table(tmp_path, package):
+    def edit(d):
+        d["schedule"]["authorization_by"] = {"status": "known", "value": "2026-11-20"}
+    table = table_with(rendered(tmp_path, package, "test1", edit).path, "Calendar days")
+    values = {row.cells[0].text: row.cells[1].text for row in table.rows}
+    assert values["Calendar days"] == "None (0 calendar days)" and values["Critical path affected"] == "No"
+    assert values["Completion date"] == "No change"
+    assert values["Condition"] == "Schedule assumes written authorization by November 20, 2026."
+
+
+def test_markup_sentence_cites_company_pricing_never_the_contract(tmp_path, package):
+    text = document_text(rendered(tmp_path, package, "test1").path)
+    assert "standard pricing: Application fee 1%, Overhead 10% and Fee 10%" in text
+    assert f"{package.company('name')}'s standard" not in text or not package.company("name").endswith("s")
+    assert "per the Contract" not in text and "per Contract" not in text
+
+
+def test_markup_sentence_cites_a_supplied_contract(tmp_path, package):
+    text = document_text(rendered(tmp_path, package, "test4").path)
+    assert "Markup per Contract section 12.4: Overhead 8% and Profit 5%" in text and "standard pricing" not in text
+
+
+def test_authorization_terms(tmp_path, package):
+    text = document_text(rendered(tmp_path, package).path)
+    assert (f"only when signed by the client and co-signed by {package.company('name')} below. "
+            "Approval by email, text message or conversation does not authorize the work") in text
+
+
+def test_prepared_by_has_no_authorization_wording(tmp_path, package):
+    table = table_with(rendered(tmp_path, package).path, "Signer")
+    assert table.rows[3].cells[0].text == "Prepared by"
+
+
+def test_pricing_rows_stay_together_and_the_header_repeats(tmp_path, package):
+    xml = table_with(rendered(tmp_path, package).path, "Div")._tbl.xml
+    assert "w:tblHeader" in xml
+    rows = table_with(rendered(tmp_path, package).path, "Div").rows
+    for row in rows:
+        assert all(p.paragraph_format.keep_with_next for cell in row.cells for p in cell.paragraphs)
+
+
 def test_zero_schedule_impact_is_stated(tmp_path, package):
-    assert "(0 calendar days)" in document_text(rendered(tmp_path, package).path)
+    table = table_with(rendered(tmp_path, package).path, "Calendar days")
+    assert table.rows[0].cells[1].text == "None (0 calendar days)"
 
 
 def test_validity_date_is_thirty_days_from_the_pco_date(tmp_path, package):

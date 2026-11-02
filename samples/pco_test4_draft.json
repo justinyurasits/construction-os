@@ -68,14 +68,65 @@
         "Finish repairs"
       ]
     },
-    "exclusions": {
-      "status": "unknown",
-      "question": "What should this exclude?"
-    },
     "assumptions": [
       "Carpenter labor is carried at the amount given, with no hours stated."
-    ]
+    ],
+    "deleted_scope": {
+      "status": "known",
+      "value": []
+    }
   },
+  "clarifications_and_exclusions": [
+    {
+      "prompt": "concealed_conditions",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Concealed conditions at the new opening: to be confirmed."
+    },
+    {
+      "prompt": "finish_limited",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Finish repairs limited to the affected areas: to be confirmed."
+    },
+    {
+      "prompt": "owner_upgrades",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Owner upgrades to the door or trim: to be confirmed."
+    },
+    {
+      "prompt": "permits",
+      "trades": [
+        "carpentry",
+        "permit"
+      ],
+      "disposition": "clarified",
+      "text": "Building permit is carried at actual cost."
+    },
+    {
+      "prompt": "permits",
+      "trades": [
+        "electrical"
+      ],
+      "disposition": "open_question",
+      "text": "Electrical permit: included in the electrical quote or excluded, to be confirmed."
+    },
+    {
+      "prompt": "hazardous_materials",
+      "trades": [
+        "all"
+      ],
+      "disposition": "open_question",
+      "text": "Hazardous materials at the opening: to be confirmed."
+    }
+  ],
   "pricing_basis": "lump_sum",
   "nte_amount": {
     "status": "not_applicable",
@@ -108,7 +159,17 @@
           "status": "not_applicable",
           "reason": "Estimate from the PM's request."
         }
-      }
+      },
+      "trade": "carpentry",
+      "division": {
+        "status": "known",
+        "value": "08"
+      },
+      "attachment": {
+        "status": "not_applicable",
+        "reason": "No attachment for this line."
+      },
+      "permit": "not_applicable"
     },
     {
       "category": "labor",
@@ -136,7 +197,17 @@
           "status": "not_applicable",
           "reason": "Estimate from the PM's request."
         }
-      }
+      },
+      "trade": "carpentry",
+      "division": {
+        "status": "known",
+        "value": "06"
+      },
+      "attachment": {
+        "status": "not_applicable",
+        "reason": "No attachment for this line."
+      },
+      "permit": "not_applicable"
     },
     {
       "category": "subcontractors",
@@ -158,13 +229,23 @@
         "source": "supplied_quote",
         "reference": {
           "status": "known",
-          "value": "Electrical subcontractor's quote"
+          "value": "Electrical subcontractor quote"
         },
         "date": {
           "status": "unknown",
           "question": "What is the date of this quote?"
         }
-      }
+      },
+      "trade": "electrical",
+      "division": {
+        "status": "known",
+        "value": "26"
+      },
+      "attachment": {
+        "status": "known",
+        "value": "A"
+      },
+      "permit": "not_stated"
     },
     {
       "category": "permits_and_fees",
@@ -192,7 +273,17 @@
           "status": "not_applicable",
           "reason": "Estimate from the PM's request."
         }
-      }
+      },
+      "trade": "permit",
+      "division": {
+        "status": "known",
+        "value": "01"
+      },
+      "attachment": {
+        "status": "not_applicable",
+        "reason": "No attachment for this line."
+      },
+      "permit": "not_applicable"
     }
   ],
   "contract_terms": {
@@ -245,10 +336,25 @@
     "contract_duration_days": {
       "status": "not_applicable",
       "reason": "No schedule extension, so the threshold doesn't apply."
+    },
+    "critical_path": {
+      "status": "known",
+      "value": "no"
+    },
+    "completion_date": {
+      "status": "known",
+      "value": "No change"
+    },
+    "authorization_by": {
+      "status": "unknown",
+      "question": "By what date must the client authorize this for the schedule to hold?"
     }
   },
   "attachments": [
-    "Electrical subcontractor's quote"
+    {
+      "letter": "A",
+      "description": "Electrical subcontractor quote"
+    }
   ],
   "open_questions": [
     "What is the project name, and who is the client?",

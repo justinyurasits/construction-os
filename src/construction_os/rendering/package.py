@@ -3,9 +3,7 @@ import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import yaml
-
-from construction_os.validate import CONFIG, load_yaml, resolve
+from construction_os.validate import CONFIG, DEFINITION, load_yaml, resolve
 
 
 @dataclass
@@ -43,7 +41,7 @@ def load_package(root):
     values = {key: resolve(value, root, profile, key, errors) for key, value in (config.get("values") or {}).items()}
     if errors:
         raise ValueError("; ".join(errors))
-    return Package(root, values, profile, _commit(root))
+    return Package(root, values, profile, _commit(root), load_yaml(root / DEFINITION))
 
 
 def _commit(root):

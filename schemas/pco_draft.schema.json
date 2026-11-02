@@ -10,6 +10,7 @@
     "description",
     "reason",
     "scope",
+    "clarifications_and_exclusions",
     "pricing_basis",
     "nte_amount",
     "cost_lines",
@@ -87,14 +88,11 @@
       "additionalProperties": false,
       "required": [
         "inclusions",
-        "exclusions",
+        "deleted_scope",
         "assumptions"
       ],
       "properties": {
         "inclusions": {
-          "$ref": "#/$defs/text_list"
-        },
-        "exclusions": {
           "$ref": "#/$defs/text_list"
         },
         "assumptions": {
@@ -103,6 +101,10 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "deleted_scope": {
+          "$ref": "#/$defs/text_list",
+          "description": "Known and empty means None."
         }
       }
     },
@@ -127,7 +129,10 @@
       "additionalProperties": false,
       "required": [
         "extension_days",
-        "contract_duration_days"
+        "contract_duration_days",
+        "critical_path",
+        "completion_date",
+        "authorization_by"
       ],
       "properties": {
         "extension_days": {
@@ -135,14 +140,60 @@
         },
         "contract_duration_days": {
           "$ref": "#/$defs/nonnegative_number"
+        },
+        "critical_path": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "value"
+              ],
+              "properties": {
+                "status": {
+                  "const": "known"
+                },
+                "value": {
+                  "enum": [
+                    "yes",
+                    "no"
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/unknown"
+            }
+          ]
+        },
+        "completion_date": {
+          "$ref": "#/$defs/text"
+        },
+        "authorization_by": {
+          "$ref": "#/$defs/date"
         }
       }
     },
     "attachments": {
       "type": "array",
       "items": {
-        "type": "string",
-        "minLength": 1
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "letter",
+          "description"
+        ],
+        "properties": {
+          "letter": {
+            "type": "string",
+            "pattern": "^[A-Z]$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     },
     "open_questions": {
@@ -299,6 +350,13 @@
           "$ref": "#/$defs/not_applicable"
         }
       ]
+    },
+    "clarifications_and_exclusions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/clarification"
+      }
     }
   },
   "$defs": {
@@ -504,12 +562,16 @@
       "additionalProperties": false,
       "required": [
         "category",
+        "trade",
+        "division",
         "description",
         "quantity",
         "unit",
         "unit_price",
         "basis",
-        "evidence"
+        "evidence",
+        "attachment",
+        "permit"
       ],
       "properties": {
         "category": {
@@ -547,6 +609,67 @@
         },
         "evidence": {
           "$ref": "#/$defs/evidence"
+        },
+        "trade": {
+          "type": "string",
+          "minLength": 1
+        },
+        "division": {
+          "$ref": "#/$defs/text"
+        },
+        "attachment": {
+          "$ref": "#/$defs/text"
+        },
+        "permit": {
+          "enum": [
+            "included_in_quote",
+            "excluded",
+            "not_stated",
+            "not_applicable"
+          ]
+        }
+      }
+    },
+    "clarification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt",
+        "trades",
+        "disposition",
+        "text"
+      ],
+      "properties": {
+        "prompt": {
+          "enum": [
+            "concealed_conditions",
+            "finish_limited",
+            "owner_upgrades",
+            "permits",
+            "hazardous_materials",
+            "other"
+          ]
+        },
+        "trades": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The trades this covers, or [\"all\"]."
+        },
+        "disposition": {
+          "enum": [
+            "clarified",
+            "excluded",
+            "not_applicable",
+            "open_question"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
         }
       }
     }

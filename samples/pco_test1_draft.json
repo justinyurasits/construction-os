@@ -69,15 +69,67 @@
         "Finishing the affected areas"
       ]
     },
-    "exclusions": {
-      "status": "unknown",
-      "question": "What should this exclude, such as fixture selection or dimmers?"
-    },
     "assumptions": [
       "No work has started.",
       "The electrician expects no effect on the completion date."
-    ]
+    ],
+    "deleted_scope": {
+      "status": "known",
+      "value": []
+    }
   },
+  "clarifications_and_exclusions": [
+    {
+      "prompt": "concealed_conditions",
+      "trades": [
+        "all"
+      ],
+      "disposition": "excluded",
+      "text": "Pricing is based on accessible ceiling cavities. Concealed conditions found on opening, such as framing obstructions or existing wiring deficiencies, are excluded and will be priced separately."
+    },
+    {
+      "prompt": "finish_limited",
+      "trades": [
+        "all"
+      ],
+      "disposition": "clarified",
+      "text": "Painting is limited to the affected areas. Repainting the full ceiling or adjacent walls is excluded."
+    },
+    {
+      "prompt": "owner_upgrades",
+      "trades": [
+        "all"
+      ],
+      "disposition": "excluded",
+      "text": "Fixtures are as stated in the electrical quote. Owner upgrades to fixtures, trims or controls will be priced separately."
+    },
+    {
+      "prompt": "permits",
+      "trades": [
+        "electrical"
+      ],
+      "disposition": "open_question",
+      "text": "Electrical permit: included in the electrical quote or excluded, to be confirmed."
+    },
+    {
+      "prompt": "permits",
+      "trades": [
+        "drywall",
+        "painting",
+        "carpentry"
+      ],
+      "disposition": "not_applicable",
+      "text": "No permit for this trade."
+    },
+    {
+      "prompt": "hazardous_materials",
+      "trades": [
+        "all"
+      ],
+      "disposition": "excluded",
+      "text": "Hazardous materials found on opening are excluded and will be priced separately."
+    }
+  ],
   "pricing_basis": "lump_sum",
   "nte_amount": {
     "status": "not_applicable",
@@ -104,13 +156,23 @@
         "source": "supplied_quote",
         "reference": {
           "status": "known",
-          "value": "Electrician's quote"
+          "value": "Electrical subcontractor quote"
         },
         "date": {
           "status": "unknown",
           "question": "What is the date of this quote?"
         }
-      }
+      },
+      "trade": "electrical",
+      "division": {
+        "status": "known",
+        "value": "26"
+      },
+      "attachment": {
+        "status": "known",
+        "value": "A"
+      },
+      "permit": "not_stated"
     },
     {
       "category": "subcontractors",
@@ -132,13 +194,23 @@
         "source": "supplied_quote",
         "reference": {
           "status": "known",
-          "value": "Drywall subcontractor's quote"
+          "value": "Drywall subcontractor quote"
         },
         "date": {
           "status": "unknown",
           "question": "What is the date of this quote?"
         }
-      }
+      },
+      "trade": "drywall",
+      "division": {
+        "status": "known",
+        "value": "09"
+      },
+      "attachment": {
+        "status": "known",
+        "value": "B"
+      },
+      "permit": "not_applicable"
     },
     {
       "category": "subcontractors",
@@ -160,13 +232,23 @@
         "source": "supplied_quote",
         "reference": {
           "status": "known",
-          "value": "Painter's quote"
+          "value": "Painting subcontractor quote"
         },
         "date": {
           "status": "unknown",
           "question": "What is the date of this quote?"
         }
-      }
+      },
+      "trade": "painting",
+      "division": {
+        "status": "known",
+        "value": "09"
+      },
+      "attachment": {
+        "status": "known",
+        "value": "C"
+      },
+      "permit": "not_applicable"
     },
     {
       "category": "labor",
@@ -188,13 +270,23 @@
         "source": "rate_table",
         "reference": {
           "status": "known",
-          "value": "company/pricing/rates.yaml, labor_billing_rates, Carpenter"
+          "value": "Company labor rate, Carpenter"
         },
         "date": {
           "status": "not_applicable",
           "reason": "Current company rate table."
         }
-      }
+      },
+      "trade": "carpentry",
+      "division": {
+        "status": "known",
+        "value": "06"
+      },
+      "attachment": {
+        "status": "not_applicable",
+        "reason": "No attachment for this line."
+      },
+      "permit": "not_applicable"
     }
   ],
   "contract_terms": {
@@ -224,12 +316,33 @@
     "contract_duration_days": {
       "status": "not_applicable",
       "reason": "No schedule extension, so the threshold doesn't apply."
+    },
+    "critical_path": {
+      "status": "known",
+      "value": "no"
+    },
+    "completion_date": {
+      "status": "known",
+      "value": "No change"
+    },
+    "authorization_by": {
+      "status": "unknown",
+      "question": "By what date must the client authorize this for the schedule to hold?"
     }
   },
   "attachments": [
-    "Electrician's quote",
-    "Drywall subcontractor's quote",
-    "Painter's quote"
+    {
+      "letter": "A",
+      "description": "Electrical subcontractor quote"
+    },
+    {
+      "letter": "B",
+      "description": "Drywall subcontractor quote"
+    },
+    {
+      "letter": "C",
+      "description": "Painting subcontractor quote"
+    }
   ],
   "open_questions": [
     "What is the project name, and who is the client?",
