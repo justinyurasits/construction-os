@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Registry entry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "kind", "value_type", "schema", "default", "constraints", "stricter_is", "authority", "change_approver", "onboarding"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "kind": {"enum": ["parameter", "identity", "role_mapping", "module_switch"]},
+    "value_type": {"enum": ["duration", "money", "percent", "count", "text", "role", "list", "object"]},
+    "schema": {"type": ["string", "object"]},
+    "default": {},
+    "constraints": {"type": "object"},
+    "stricter_is": {"enum": ["lower", "higher", "not_applicable"]},
+    "authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["document"],
+      "properties": {
+        "document": {"type": ["string", "null"]},
+        "section": {"type": "string"},
+        "note": {"type": "string"}
+      },
+      "if": {"properties": {"document": {"type": "null"}}},
+      "then": {"required": ["note"]}
+    },
+    "change_approver": {"type": "string", "minLength": 1},
+    "onboarding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["group", "found_in", "question"],
+      "properties": {
+        "group": {"type": "string", "minLength": 1},
+        "found_in": {"type": "array", "items": {"type": "string"}, "minItems": 1},
+        "question": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

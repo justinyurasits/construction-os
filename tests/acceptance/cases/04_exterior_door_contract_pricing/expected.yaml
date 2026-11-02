@@ -1,0 +1,39 @@
+id: 4
+title: Exterior door, contract overrides pricing
+mode: draft
+capability: Contract-specific pricing
+difficulty: Contract override / Pricing
+failure_looks_like: Applies company markup instead of contract terms, or an incorrect total
+
+exact:
+  document: PCO
+  citations_from_request:
+    - {reference: contract section 12.4, for: markup and permit treatment}
+  pricing:
+    lines:
+      - {category: materials, description: Door and associated materials, amount: "2400.00"}
+      - {category: labor, description: Carpenter, amount: "900.00"}
+      - {category: subcontractors, description: Electrical, amount: "1600.00"}
+    subtotal: "4900.00"
+    markup:
+      - {name: Overhead, percent: "8", amount: "392.00"}
+      - {name: Profit, percent: "5", amount: "245.00"}
+    markup_total: "637.00"
+    pass_through:
+      - {category: permits_and_fees, description: Building permit, amount: "200.00"}
+    total: "5737.00"
+    compounded: false
+  must_not:
+    - Apply the company's 21%
+    - Apply the 1% application fee
+  explains_difference:
+    company_pricing_total: "6129.00"
+    company_markup_percent: "21"
+  schedule_impact_days: 0
+
+judged:
+  - Explanation quality
+  - Distinguishes the contract's pricing terms from internal company approval requirements
+
+resolved:   # Not graded. Former review note, settled by Justin.
+  - Carpenter labor is carried at $900 as given, with no hours. Never invent hours.

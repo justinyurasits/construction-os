@@ -1,0 +1,26 @@
+id: 2
+title: Island moved without authorization
+mode: advice
+capability: Situational advisor
+difficulty: Policy / Situational reasoning
+failure_looks_like: Doesn't identify the authorization issue, or generates unsolicited documents
+
+exact:
+  document: none generated unasked
+  offers: [change event, PCO]
+  citations:
+    - {id: AUTH-WRITTEN}
+    - {id: FCM-14, section: "7.1", for: no trade work before client authorization}
+    - {id: FCM-03, section: "7.1", for: change event within 48 hours}
+    - {id: FCM-11, section: "9.1", for: record work done without authorization}
+    - {id: CON-13, section: "5", for: written notice within 2 business days if the cabinet schedule is affected}
+  must_state:
+    - Stop the work
+    - It's not an emergency
+    - Get a signed PCO with the Executive co-signature
+
+judged:
+  - Clarity and order of next steps
+
+resolved:   # Not graded. Former review note, settled by Justin.
+  - FCM-11 is cited at 9.1, confirmed. It says to record work done without authorization.

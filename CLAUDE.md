@@ -1,0 +1,20 @@
+# Construction OS
+
+## What this is
+
+The application. It generates governed construction documents from a customer package. Beacon Hill Interiors' package is the construction-os-corpus repository, next to this one.
+
+## Build spec
+
+../construction-os-corpus/design/pco-technical-design.md is the build spec. Read it, and ../construction-os-corpus/design/product-brief.md, before proposing a plan or next step. They are snapshots; check the date at the top.
+
+## Checks
+
+Every PR runs the tests and `python -m construction_os.validate --corpus ../construction-os-corpus`. A failure is never ignored. Either the change is wrong or the check is.
+
+## Rules
+
+- Never commit or push directly to main. Every change goes on a branch and through a pull request.
+- Never read, print, or edit .env. Secrets live only there. .env.example holds placeholder key names only.
+- Show me the plan before writing code.
+- Don't merge a pull request unless told.
