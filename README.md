@@ -28,6 +28,16 @@ It reports pass or fail for five checks and exits non-zero on any failure:
 
 Any value containing `PLACEHOLDER` produces a warning, not a failure.
 
+## Render a PCO
+
+`construction_os.rendering.render(draft, package, out)` fills the company's Word template and returns the file and its flags. Flags never block the output.
+
+```
+.venv/bin/python -m construction_os.rendering --corpus ../construction-os-corpus
+```
+
+This renders the three sample drafts to `samples/rendered/` (gitignored), with PDF previews if LibreOffice is installed.
+
 ## Test
 
 ```

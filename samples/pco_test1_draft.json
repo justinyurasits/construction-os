@@ -1,0 +1,239 @@
+{
+  "definition": "CHG-53-DEF",
+  "header": {
+    "pco_number": {
+      "status": "unknown",
+      "question": "Which PCO number comes next on this project?"
+    },
+    "date": {
+      "status": "known",
+      "value": "2026-11-02"
+    },
+    "project": {
+      "status": "unknown",
+      "question": "What is the project name?"
+    },
+    "project_address": {
+      "status": "unknown",
+      "question": "What is the project address?"
+    },
+    "owner": {
+      "status": "unknown",
+      "question": "Who is the client?"
+    },
+    "contract_reference": {
+      "status": "unknown",
+      "question": "Which contract does this change?"
+    },
+    "location": {
+      "status": "unknown",
+      "question": "Where on the project is the work?"
+    },
+    "trades": {
+      "status": "known",
+      "value": [
+        "Electrical",
+        "Drywall",
+        "Painting",
+        "Carpentry"
+      ]
+    },
+    "change_event_ref": {
+      "status": "unknown",
+      "question": "Which change event does this PCO belong to?"
+    },
+    "requested_approval_date": {
+      "status": "unknown",
+      "question": "By what date is the client's decision needed?"
+    },
+    "cause_category": {
+      "status": "known",
+      "value": "Owner-Directed"
+    }
+  },
+  "description": {
+    "status": "known",
+    "value": "Add six recessed LED lights to the living room ceiling. This was not in the original scope."
+  },
+  "reason": {
+    "status": "known",
+    "value": "The homeowner asked for the added lighting."
+  },
+  "scope": {
+    "inclusions": {
+      "status": "known",
+      "value": [
+        "Six recessed LED lights, with wiring, switches and installation",
+        "Opening the ceiling and coordinating the work",
+        "Patching the ceiling",
+        "Finishing the affected areas"
+      ]
+    },
+    "exclusions": {
+      "status": "unknown",
+      "question": "What should this exclude, such as fixture selection or dimmers?"
+    },
+    "assumptions": [
+      "No work has started.",
+      "The electrician expects no effect on the completion date."
+    ]
+  },
+  "pricing_basis": "lump_sum",
+  "nte_amount": {
+    "status": "not_applicable",
+    "reason": "Lump sum, with no not-to-exceed amount."
+  },
+  "cost_lines": [
+    {
+      "category": "subcontractors",
+      "description": "Electrical: fixtures, wiring, switches and installation",
+      "quantity": {
+        "status": "known",
+        "value": 1
+      },
+      "unit": {
+        "status": "known",
+        "value": "LS"
+      },
+      "unit_price": {
+        "status": "known",
+        "value": 2850
+      },
+      "basis": "quote",
+      "evidence": {
+        "source": "supplied_quote",
+        "reference": {
+          "status": "known",
+          "value": "Electrician's quote"
+        },
+        "date": {
+          "status": "unknown",
+          "question": "What is the date of this quote?"
+        }
+      }
+    },
+    {
+      "category": "subcontractors",
+      "description": "Drywall: patch the ceiling",
+      "quantity": {
+        "status": "known",
+        "value": 1
+      },
+      "unit": {
+        "status": "known",
+        "value": "LS"
+      },
+      "unit_price": {
+        "status": "known",
+        "value": 750
+      },
+      "basis": "quote",
+      "evidence": {
+        "source": "supplied_quote",
+        "reference": {
+          "status": "known",
+          "value": "Drywall subcontractor's quote"
+        },
+        "date": {
+          "status": "unknown",
+          "question": "What is the date of this quote?"
+        }
+      }
+    },
+    {
+      "category": "subcontractors",
+      "description": "Painting: finish the affected areas",
+      "quantity": {
+        "status": "known",
+        "value": 1
+      },
+      "unit": {
+        "status": "known",
+        "value": "LS"
+      },
+      "unit_price": {
+        "status": "known",
+        "value": 500
+      },
+      "basis": "quote",
+      "evidence": {
+        "source": "supplied_quote",
+        "reference": {
+          "status": "known",
+          "value": "Painter's quote"
+        },
+        "date": {
+          "status": "unknown",
+          "question": "What is the date of this quote?"
+        }
+      }
+    },
+    {
+      "category": "labor",
+      "description": "Carpenter: open the ceiling and coordinate",
+      "quantity": {
+        "status": "known",
+        "value": 6
+      },
+      "unit": {
+        "status": "known",
+        "value": "HR"
+      },
+      "unit_price": {
+        "status": "known",
+        "value": 90
+      },
+      "basis": "hours_x_rate",
+      "evidence": {
+        "source": "rate_table",
+        "reference": {
+          "status": "known",
+          "value": "company/pricing/rates.yaml, labor_billing_rates, Carpenter"
+        },
+        "date": {
+          "status": "not_applicable",
+          "reason": "Current company rate table."
+        }
+      }
+    }
+  ],
+  "contract_terms": {
+    "status": "not_applicable",
+    "reason": "No contract was supplied."
+  },
+  "markup_presentation": {
+    "value": "itemized",
+    "source": "company_setting",
+    "reference": {
+      "status": "not_applicable",
+      "reason": "Company setting; no contract term sets the breakdown."
+    }
+  },
+  "signatures": {
+    "order": [
+      "executive_cosign",
+      "client",
+      "contractor_pm"
+    ]
+  },
+  "schedule": {
+    "extension_days": {
+      "status": "known",
+      "value": 0
+    },
+    "contract_duration_days": {
+      "status": "not_applicable",
+      "reason": "No schedule extension, so the threshold doesn't apply."
+    }
+  },
+  "attachments": [
+    "Electrician's quote",
+    "Drywall subcontractor's quote",
+    "Painter's quote"
+  ],
+  "open_questions": [
+    "What is the project name, and who is the client?",
+    "Which PCO number comes next?",
+    "What should this exclude?"
+  ]
+}

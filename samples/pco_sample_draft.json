@@ -165,6 +165,10 @@
       }
     }
   ],
+  "contract_terms": {
+    "status": "not_applicable",
+    "reason": "No contract was supplied."
+  },
   "markup_presentation": {
     "value": "itemized",
     "source": "company_setting",

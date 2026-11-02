@@ -7,10 +7,11 @@ name = "construction-os"
 version = "0.1.0"
 description = "Construction OS application: generates governed construction documents from a customer package."
 requires-python = ">=3.12,<3.13"
-dependencies = ["PyYAML>=6.0", "jsonschema>=4.20"]
+dependencies = ["PyYAML>=6.0", "jsonschema>=4.20", "docxtpl>=0.20", "python-docx>=1.1"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+template = ["resvg_py>=0.5"]  # for the corpus script templates/build_pco_template.py
 
 [tool.setuptools.packages.find]
 where = ["src"]
