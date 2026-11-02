@@ -1,0 +1,29 @@
+id: 5
+title: Tile selection within allowance
+mode: advice
+capability: Correct document selection
+difficulty: Look-alike / Document selection
+failure_looks_like: Generates an unnecessary PCO without evaluating the allowance process
+
+exact:
+  document: no PCO
+  citations:
+    - {id: FCM-09, section: "8.1", for: documented owner selection; email approval acceptable}
+    - {id: FCM-09, section: "8.2", for: confirmation by email or signed selection sheet}
+    - {id: CON-17, section: "10.3", for: allowance reconciliation per the contract}
+  must_state:
+    - It's a selection within the allowance
+    - Confirm by email or signed selection sheet
+    - The amount under the allowance is handled at allowance reconciliation per the contract, not as a change
+  allowance:
+    amount: "15000"
+    selected: "13400"
+    under: "1600"
+
+judged:
+  - How it explains this to the PM
+
+review_notes:   # Not graded. Open questions for Justin.
+  - You cited FCM-09 8.1. "Email or signed selection sheet" is in 8.2, so both are listed.
+  - CHG-51 10.1 says allowance selections above or below baseline "must be captured as a CE". That sits against "not as a change".
+  - CON-17 10.3 step 24 allows a credit by "credit change order". That also sits against "not as a change".
