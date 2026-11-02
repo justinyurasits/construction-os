@@ -17,4 +17,5 @@ Every PR runs the tests and `python -m construction_os.validate --corpus ../cons
 - Never commit or push directly to main. Every change goes on a branch and through a pull request.
 - Never read, print, or edit .env. Secrets live only there. .env.example holds placeholder key names only.
 - Show me the plan before writing code.
+- Never put company content in this repository: no company names, rates, rules, clause text or templates. Everything company-specific is read from the package. Test fixtures use clearly fictional companies.
 - Don't merge a pull request unless told.
