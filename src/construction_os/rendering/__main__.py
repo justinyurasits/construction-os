@@ -1,4 +1,4 @@
-"""Render the three sample drafts, with PDF previews.
+"""Render every sample draft in the package and its PM checklist, with PDF previews.
 
   python -m construction_os.rendering --corpus ../construction-os-corpus
 """
@@ -10,11 +10,12 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from . import load_package, render
+from construction_os.validate import sample_paths
+
+from . import load_package, render, render_checklist
 
 REPO = Path(__file__).resolve().parents[3]
 MAC_SOFFICE = "/Applications/LibreOffice.app/Contents/MacOS/soffice"
-SAMPLES = {"pco_sample": "pco_sample_draft.json", "pco_test1": "pco_test1_draft.json", "pco_test4": "pco_test4_draft.json"}
 
 
 def preview_env():
@@ -37,16 +38,19 @@ def main():
     package = load_package(args.corpus)
     out = Path(args.out)
     soffice = shutil.which("soffice") or (MAC_SOFFICE if Path(MAC_SOFFICE).exists() else None)
-    for name, draft_file in SAMPLES.items():
-        draft = json.loads((REPO / "samples" / draft_file).read_text())
+    for path in sample_paths(args.corpus):
+        name = path.stem.removesuffix("_draft")
+        draft = json.loads(path.read_text())
         result = render(draft, package, out / f"{name}.docx")
+        checklist = render_checklist(result, draft, package, out / f"{name}_checklist.docx")
         print(f"{result.path}  total {result.priced.total}")
+        print(f"{checklist}")
         for flag in result.flags:
             print(f"  FLAG {flag.kind}: {flag.message}")
         if soffice:
-            subprocess.run([soffice, "--headless", "--convert-to", "pdf", "--outdir", str(out), str(result.path)],
-                           check=True, capture_output=True, env=preview_env())
-            print(f"  {out / (name + '.pdf')}")
+            for file in (result.path, checklist):
+                subprocess.run([soffice, "--headless", "--convert-to", "pdf", "--outdir", str(out), str(file)],
+                               check=True, capture_output=True, env=preview_env())
     if not soffice:
         print("soffice not found: no PDF previews")
 

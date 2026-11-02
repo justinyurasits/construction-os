@@ -1,0 +1,10 @@
+# A fictional company, for unit tests only.
+company:
+  name: Example Builders
+  legal_name: Example Builders LLC
+  signatory: {name: Alex Sample, title: President}
+  address: 1 Example Way, Sampletown, ZZ 00000
+  email: office@example.invalid
+  licenses: {contractor_registration: REG-EXAMPLE}
+brand:
+  tagline: A fictional company

@@ -1,0 +1,10 @@
+id: CHG-53-DEF
+procedure: CHG-53
+sections:
+  - {id: signatures, fields: [executive_cosign, client, contractor_pm]}
+clarification_prompts:
+  - {id: concealed_conditions, prompt: Concealed conditions}
+  - {id: permits, prompt: Permits}
+permit_trades: [electrical]
+header_identity:
+  - {label: Registration, path: licenses.contractor_registration}

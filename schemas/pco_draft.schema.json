@@ -19,6 +19,7 @@
     "open_questions",
     "contract_terms",
     "markup_presentation",
+    "architect_signs",
     "signatures"
   ],
   "properties": {
@@ -357,6 +358,51 @@
       "items": {
         "$ref": "#/$defs/clarification"
       }
+    },
+    "architect_signs": {
+      "description": "Set from a supplied contract term or the PM.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "source",
+        "reference"
+      ],
+      "properties": {
+        "value": {
+          "type": "boolean"
+        },
+        "source": {
+          "enum": [
+            "contract_term",
+            "pm"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/text"
+        }
+      },
+      "if": {
+        "properties": {
+          "source": {
+            "const": "contract_term"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "reference": {
+            "properties": {
+              "status": {
+                "const": "known"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -615,7 +661,7 @@
           "minLength": 1
         },
         "division": {
-          "$ref": "#/$defs/text"
+          "$ref": "#/$defs/division"
         },
         "attachment": {
           "$ref": "#/$defs/text"
@@ -672,6 +718,69 @@
           "minLength": 1
         }
       }
+    },
+    "division": {
+      "description": "2-digit MasterFormat division.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "value"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "value": {
+              "enum": [
+                "00",
+                "01",
+                "02",
+                "03",
+                "04",
+                "05",
+                "06",
+                "07",
+                "08",
+                "09",
+                "10",
+                "11",
+                "12",
+                "13",
+                "14",
+                "21",
+                "22",
+                "23",
+                "25",
+                "26",
+                "27",
+                "28",
+                "31",
+                "32",
+                "33",
+                "34",
+                "35",
+                "40",
+                "41",
+                "42",
+                "43",
+                "44",
+                "45",
+                "46",
+                "48"
+              ]
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/unknown"
+        },
+        {
+          "$ref": "#/$defs/not_applicable"
+        }
+      ]
     }
   }
 }

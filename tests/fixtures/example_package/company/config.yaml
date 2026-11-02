@@ -1,0 +1,12 @@
+identity: {profile: company/profile.yaml}
+values:
+  AUTH-WRITTEN.cosign_timing: before_client
+  MARKUP-PRESENTATION: itemized
+  MARKUP-STRUCTURE:
+    - {name: Company fee, rate: 2, applies_to: [all], client_visible: true, condition: null}
+    - {name: Overhead, rate: 8, applies_to: [all], client_visible: true, condition: null}
+    - {name: Profit, rate: 5, applies_to: [all], client_visible: true, condition: null}
+  PERMIT-TREATMENT: pass_through_after_markup
+  PCO-VALIDITY: 14 days
+  role.Executive: {name: {from_profile: company.signatory.name}, fallback: Executive}
+  role.ProjectManager: {name: null, fallback: the project manager on the request}

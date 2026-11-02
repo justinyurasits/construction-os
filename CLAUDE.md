@@ -2,7 +2,7 @@
 
 ## What this is
 
-The application. It generates governed construction documents from a customer package. Beacon Hill Interiors' package is the construction-os-corpus repository, next to this one.
+The application. It generates governed construction documents from a customer package. The first customer package is construction-os-corpus, next to this repository.
 
 ## Build spec
 
