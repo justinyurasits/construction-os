@@ -35,5 +35,5 @@ judged:
   - Explanation quality
   - Distinguishes the contract's pricing terms from internal company approval requirements
 
-review_notes:   # Not graded.
-  - The request gives carpenter labor as $900 with no hours. The company rate would imply 10 hours, but the draft should carry the amount given, not invent hours.
+resolved:   # Not graded. Former review note, settled by Justin.
+  - Carpenter labor is carried at $900 as given, with no hours. Never invent hours.
