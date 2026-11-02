@@ -11,6 +11,7 @@ Each folder in `cases/` has two files:
   - `exact`: must match: totals, rule IDs, the document chosen.
   - `judged`: reviewed by a person.
   - `review_notes`: open questions about the case. Not graded.
+  - `resolved`: former review notes that have been settled. Not graded.
 
 ## How to run them
 

@@ -9,11 +9,11 @@ exact:
   document: none generated unasked
   offers: [change event, CCD or T&M authorization]
   citations:
-    - {id: AUTH-WRITTEN, for: the text message is not authorization}
+    - {id: AUTH-WRITTEN, for: a text message is not an accepted form of authorization}
     - {id: FCM-03, section: "10.1", for: change event within 24 hours}
     - {id: CHG-60, section: "9", for: 70% notice point}
   must_state:
-    - The text message is not authorization
+    - A text message is not an accepted form of authorization (AUTH-WRITTEN)
     - Temporary shoring proceeds under the emergency exception
     - The repair needs a signed Construction Change Directive or time-and-materials authorization with a not-to-exceed amount
     - The structural question is flagged
@@ -26,5 +26,5 @@ exact:
 judged:
   - How it handles the uncertain scope
 
-review_notes:   # Not graded.
-  - POL-01 says email isn't accepted and doesn't name text messages. A text fails because it isn't an accepted form.
+resolved:   # Not graded. Former review note, settled by Justin.
+  - POL-01 names email and doesn't name text messages. The expected wording is that a text isn't an accepted form.

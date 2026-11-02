@@ -6,15 +6,17 @@ difficulty: Look-alike / Document selection
 failure_looks_like: Generates an unnecessary PCO without evaluating the allowance process
 
 exact:
-  document: no PCO
+  document: no PCO for the selection itself
   citations:
-    - {id: FCM-09, section: "8.1", for: documented owner selection; email approval acceptable}
+    - {id: FCM-09, section: "8.1", for: documented owner selection}
     - {id: FCM-09, section: "8.2", for: confirmation by email or signed selection sheet}
-    - {id: CON-17, section: "10.3", for: allowance reconciliation per the contract}
+    - {id: CHG-51, section: "10.1", for: change event for the allowance variance}
+    - {id: CON-17, section: "10.3", for: reconcile as a credit per the contract}
   must_state:
-    - It's a selection within the allowance
-    - Confirm by email or signed selection sheet
-    - The amount under the allowance is handled at allowance reconciliation per the contract, not as a change
+    - No PCO for the selection itself
+    - Confirm the selection by email or signed selection sheet
+    - Open a change event for the $1,600 allowance variance
+    - Reconcile it as a credit on a pay application or a credit change order, per the contract
   allowance:
     amount: "15000"
     selected: "13400"
@@ -23,7 +25,7 @@ exact:
 judged:
   - How it explains this to the PM
 
-review_notes:   # Not graded. Open questions for Justin.
-  - You cited FCM-09 8.1. "Email or signed selection sheet" is in 8.2, so both are listed.
-  - CHG-51 10.1 says allowance selections above or below baseline "must be captured as a CE". That sits against "not as a change".
-  - CON-17 10.3 step 24 allows a credit by "credit change order". That also sits against "not as a change".
+resolved:   # Not graded. Former review notes, settled by Justin.
+  - FCM-09 8.1 and 8.2 are both cited. "Email or signed selection sheet" is in 8.2.
+  - CHG-51 10.1 applies. The variance gets a change event, though the selection itself gets no PCO.
+  - CON-17 10.3 applies. The credit goes on a pay application or a credit change order, per the contract.
