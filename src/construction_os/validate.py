@@ -24,6 +24,11 @@ CONFIG = "company/config.yaml"
 DURATION = re.compile(r"^\d+ (hours?|days?|weeks?|months?)$")
 RULE = re.compile(r"^(\w+) (<=|>=|<|>) (\w+)$")
 COMPARE = {"<": operator.lt, "<=": operator.le, ">": operator.gt, ">=": operator.ge}
+PLACEHOLDER = "PLACEHOLDER"
+SIGNATURE_ORDER = {
+    "before_client": ["executive_cosign", "client", "contractor_pm"],
+    "after_client": ["client", "executive_cosign", "contractor_pm"],
+}
 LEAF_TYPES = {"duration", "money", "percent", "count", "text", "role", "boolean"}
 FIELD_CONSTRAINTS = {"min", "max"}
 LIST_CONSTRAINTS = {"min_items", "unique_by", "items"}
@@ -201,6 +206,31 @@ def null_leaves(value, where):
     return [where] if value is None else []
 
 
+def placeholder_warnings(value, where):
+    """Generated documents can be checked for the same marker."""
+    if isinstance(value, dict):
+        return [w for key, item in value.items() for w in placeholder_warnings(item, f"{where}.{key}")]
+    if isinstance(value, list):
+        return [w for i, item in enumerate(value) for w in placeholder_warnings(item, f"{where}[{i}]")]
+    if isinstance(value, str) and PLACEHOLDER in value:
+        return [f"{where} is a placeholder: {value!r}"]
+    return []
+
+
+def markup_presentation_warnings(values):
+    """client_visible and the presentation are separate settings that can disagree."""
+    presentation = values.get("MARKUP-PRESENTATION")
+    components = values.get("MARKUP-STRUCTURE")
+    if not isinstance(components, list):
+        return []
+    visible = [c.get("client_visible") for c in components if isinstance(c, dict)]
+    if presentation == "hidden" and any(visible):
+        return ["MARKUP-PRESENTATION is hidden, but a markup component has client_visible true"]
+    if presentation in ("itemized", "combined") and visible and not any(visible):
+        return [f"MARKUP-PRESENTATION is {presentation}, but no markup component has client_visible true"]
+    return []
+
+
 def resolve(value, corpus, profile, where, errors):
     """Follow {from, key} and {from_profile} references, at any depth."""
     if isinstance(value, dict):
@@ -242,6 +272,7 @@ def check_config_values(corpus):
         if key not in registry:
             result.errors.append(f"{key}: not in the registry")
     checked = 0
+    resolved = {}
     for stem, (_, entry) in registry.items():
         if not isinstance(entry, dict) or "schema" not in entry:
             continue  # Reported by registry_entries.
@@ -252,16 +283,20 @@ def check_config_values(corpus):
                 continue
             for leaf in null_leaves(value, stem):
                 result.warnings.append(f"{leaf} is blank in the company profile")
+            result.warnings += placeholder_warnings(value, stem)
         elif stem in values:
             value = resolve(values[stem], corpus, profile, stem, result.errors)
             if value is None and values[stem] is not None:
                 continue
+            resolved[stem] = value
+            result.warnings += placeholder_warnings(value, stem)
         else:
             result.errors.append(f"{stem}: no value in {CONFIG}")
             continue
         checked += 1
         result.errors += check_value(value, entry["schema"], stem)
         result.errors += check_constraints(value, entry.get("constraints") or {}, stem)
+    result.warnings += markup_presentation_warnings(resolved)
     result.summary = f"{checked} values"
     return result
 
@@ -326,6 +361,37 @@ def check_sample_draft(sample=SAMPLE_DRAFT, schema=DRAFT_SCHEMA):
     return result
 
 
+def signature_fields(definition):
+    for section in definition.get("sections") or []:
+        if isinstance(section, dict) and section.get("id") == "signatures":
+            return section.get("fields")
+    return None
+
+
+def check_draft_consistency(corpus, sample=SAMPLE_DRAFT):
+    """The definition and the sample draft against the company's settings."""
+    result = Result("draft_consistency")
+    values = (load_yaml(corpus / CONFIG) or {}).get("values") or {}
+    timing = values.get("AUTH-WRITTEN.cosign_timing")
+    presentation = values.get("MARKUP-PRESENTATION")
+    expected = SIGNATURE_ORDER.get(timing)
+    if expected is None:
+        result.errors.append(f"AUTH-WRITTEN.cosign_timing: no signature order for {timing!r}")
+    draft = json.loads(Path(sample).read_text())
+    definition = load_yaml(corpus / DEFINITION) or {}
+    if expected and signature_fields(definition) != expected:
+        result.errors.append(f"{DEFINITION}: signatures {signature_fields(definition)} don't match {timing}: {expected}")
+    order = (draft.get("signatures") or {}).get("order")
+    if expected and order != expected:
+        result.errors.append(f"draft signature order {order} doesn't match {timing}: {expected}")
+    markup = draft.get("markup_presentation") or {}
+    if markup.get("source") != "contract_term" and markup.get("value") != presentation:
+        result.errors.append(f"draft markup_presentation {markup.get('value')!r} doesn't match "
+                             f"MARKUP-PRESENTATION {presentation!r}, and no contract term is cited")
+    result.summary = f"signatures {timing}, markup {markup.get('value')}"
+    return result
+
+
 def guarded(name, check, *args):
     """A file that can't be read fails its check; it doesn't stop the others."""
     try:
@@ -339,7 +405,8 @@ def run_checks(corpus, sample=SAMPLE_DRAFT):
     return [guarded("registry_entries", check_registry_entries, corpus),
             guarded("config_values", check_config_values, corpus),
             guarded("definition_dependencies", check_definition_dependencies, corpus),
-            guarded("sample_draft", check_sample_draft, sample)]
+            guarded("sample_draft", check_sample_draft, sample),
+            guarded("draft_consistency", check_draft_consistency, corpus, sample)]
 
 
 def main(argv=None):

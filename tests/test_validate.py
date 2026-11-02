@@ -98,6 +98,39 @@ def test_blank_identity_field_warns_but_passes(corpus):
     assert result.passed and "company.licenses.number is blank" in result.warnings[0]
 
 
+def test_placeholder_warns_but_passes(corpus):
+    write_entry(corpus, "company.licenses", kind="identity", schema='{number: "text?"}', default="null", constraints="{}")
+    (corpus / "company/profile.yaml").write_text(
+        "company:\n  name: Test Builders\n  licenses:\n    number: HIC-000000 (PLACEHOLDER)\n")
+    result = v.check_config_values(corpus)
+    assert result.passed and "company.licenses.number is a placeholder" in result.warnings[0]
+
+
+def test_placeholder_in_a_config_value_warns(corpus):
+    (corpus / "company/pricing/rates.yaml").write_text("rates:\n  - {role: PLACEHOLDER, rate: 90}\n")
+    result = v.check_config_values(corpus)
+    assert result.passed and "RATES[0].role is a placeholder" in result.warnings[0]
+
+
+def test_config_fails_on_bad_markup_presentation(corpus):
+    replace(corpus / "company/config.yaml", "MARKUP-PRESENTATION: itemized", "MARKUP-PRESENTATION: lumped")
+    assert "is not one of" in errors(v.check_config_values(corpus))
+
+
+def test_config_fails_on_bad_cosign_timing(corpus):
+    replace(corpus / "company/config.yaml", "cosign_timing: before_client", "cosign_timing: whenever")
+    assert "is not one of" in errors(v.check_config_values(corpus))
+
+
+def test_hidden_presentation_with_visible_component_warns(corpus):
+    write_entry(corpus, "MARKUP-STRUCTURE", vt="list", schema="{items: {name: text, client_visible: boolean}}",
+                default="[]", constraints="{}")
+    replace(corpus / "company/config.yaml", "MARKUP-PRESENTATION: itemized",
+            "MARKUP-PRESENTATION: hidden\n  MARKUP-STRUCTURE: [{name: Fee, client_visible: true}]")
+    result = v.check_config_values(corpus)
+    assert result.passed and "hidden" in result.warnings[0]
+
+
 # definition_dependencies
 
 @pytest.mark.parametrize("old,new", [
@@ -149,6 +182,53 @@ def test_sample_matches_the_worked_example():
                    for line in draft["cost_lines"])
     markup = subtotal * Decimal("0.21")
     assert (subtotal, markup, subtotal + markup) == (Decimal(2170), Decimal("455.70"), Decimal("2625.70"))
+
+
+# draft_consistency
+
+def edited_sample(tmp_path, change):
+    draft = json.loads(v.SAMPLE_DRAFT.read_text())
+    change(draft)
+    path = tmp_path / "edited.json"
+    path.write_text(json.dumps(draft))
+    return path
+
+
+def test_consistency_passes_on_the_sample(corpus):
+    assert v.check_draft_consistency(corpus).passed
+
+
+def test_draft_signature_order_is_flagged(corpus, tmp_path):
+    path = edited_sample(tmp_path, lambda d: d["signatures"].update(order=["client", "executive_cosign", "contractor_pm"]))
+    assert "draft signature order" in errors(v.check_draft_consistency(corpus, path))
+
+
+def test_setting_after_client_flags_the_definition_and_draft(corpus):
+    replace(corpus / "company/config.yaml", "cosign_timing: before_client", "cosign_timing: after_client")
+    message = errors(v.check_draft_consistency(corpus))
+    assert "CHG-53-DEF" in message and "draft signature order" in message
+
+
+def test_draft_markup_presentation_must_match_the_setting(corpus, tmp_path):
+    path = edited_sample(tmp_path, lambda d: d["markup_presentation"].update(value="combined"))
+    assert "no contract term is cited" in errors(v.check_draft_consistency(corpus, path))
+
+
+def contract_term(draft):
+    draft["markup_presentation"] = {"value": "combined", "source": "contract_term",
+                                    "reference": {"status": "known", "value": "Prime Agreement 7.2"}}
+
+
+def test_cited_contract_term_wins_over_the_setting(corpus, tmp_path):
+    path = edited_sample(tmp_path, contract_term)
+    assert v.check_draft_consistency(corpus, path).passed and v.check_sample_draft(path).passed
+
+
+def test_contract_term_without_a_reference_fails_the_schema(tmp_path):
+    def change(draft):
+        contract_term(draft)
+        draft["markup_presentation"]["reference"] = {"status": "unknown", "question": "Which clause?"}
+    assert not v.check_sample_draft(edited_sample(tmp_path, change)).passed
 
 
 # command

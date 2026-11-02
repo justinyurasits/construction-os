@@ -35,6 +35,10 @@ def corpus(tmp_path) -> Path:
     write_entry(tmp_path, "RATES", vt="list", schema="{items: {role: text, rate: money}}", default="[]",
                 constraints="{min_items: 1, unique_by: role}")
     write_entry(tmp_path, "company.name", kind="identity", vt="text", schema="text", default="null", constraints="{}")
+    write_entry(tmp_path, "AUTH-WRITTEN.cosign_timing", vt="text", schema="{enum: [before_client, after_client]}",
+                default="before_client", constraints="{}")
+    write_entry(tmp_path, "MARKUP-PRESENTATION", vt="text", schema="{enum: [itemized, combined, hidden]}",
+                default="itemized", constraints="{}")
     (tmp_path / "company/profile.yaml").write_text("company:\n  name: Test Builders\n")
     (tmp_path / "company/pricing/rates.yaml").write_text("rates:\n  - {role: Carpenter, rate: 90}\n")
     (tmp_path / "company/config.yaml").write_text(
@@ -42,10 +46,13 @@ def corpus(tmp_path) -> Path:
         "values:\n"
         "  NTE-CHECKPOINTS: {notify_at: 70, stop_at: 90}\n"
         "  CE-OPEN-WINDOW: 48 hours\n"
-        "  RATES: {from: company/pricing/rates.yaml, key: rates}\n")
+        "  RATES: {from: company/pricing/rates.yaml, key: rates}\n"
+        "  AUTH-WRITTEN.cosign_timing: before_client\n"
+        "  MARKUP-PRESENTATION: itemized\n")
     (tmp_path / "definitions/CHG-53-DEF.yaml").write_text(
         "id: CHG-53-DEF\nprocedure: CHG-53\ndepends_on:\n"
         "  - {id: AUTH-WRITTEN, applies_when: always}\n"
         "  - {id: FCM-03, applies_when: always}\n"
-        "  - {id: NTE-CHECKPOINTS, applies_when: nte_present}\n")
+        "  - {id: NTE-CHECKPOINTS, applies_when: nte_present}\n"
+        "sections:\n  - {id: signatures, fields: [executive_cosign, client, contractor_pm]}\n")
     return tmp_path
