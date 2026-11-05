@@ -10,13 +10,16 @@
     "description",
     "reason",
     "scope",
+    "clarifications_and_exclusions",
     "pricing_basis",
     "nte_amount",
     "cost_lines",
     "schedule",
     "attachments",
     "open_questions",
+    "contract_terms",
     "markup_presentation",
+    "architect_signs",
     "signatures"
   ],
   "properties": {
@@ -86,14 +89,11 @@
       "additionalProperties": false,
       "required": [
         "inclusions",
-        "exclusions",
+        "deleted_scope",
         "assumptions"
       ],
       "properties": {
         "inclusions": {
-          "$ref": "#/$defs/text_list"
-        },
-        "exclusions": {
           "$ref": "#/$defs/text_list"
         },
         "assumptions": {
@@ -102,6 +102,10 @@
             "type": "string",
             "minLength": 1
           }
+        },
+        "deleted_scope": {
+          "$ref": "#/$defs/text_list",
+          "description": "Known and empty means None."
         }
       }
     },
@@ -126,7 +130,10 @@
       "additionalProperties": false,
       "required": [
         "extension_days",
-        "contract_duration_days"
+        "contract_duration_days",
+        "critical_path",
+        "completion_date",
+        "authorization_by"
       ],
       "properties": {
         "extension_days": {
@@ -134,14 +141,60 @@
         },
         "contract_duration_days": {
           "$ref": "#/$defs/nonnegative_number"
+        },
+        "critical_path": {
+          "oneOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "status",
+                "value"
+              ],
+              "properties": {
+                "status": {
+                  "const": "known"
+                },
+                "value": {
+                  "enum": [
+                    "yes",
+                    "no"
+                  ]
+                }
+              }
+            },
+            {
+              "$ref": "#/$defs/unknown"
+            }
+          ]
+        },
+        "completion_date": {
+          "$ref": "#/$defs/text"
+        },
+        "authorization_by": {
+          "$ref": "#/$defs/date"
         }
       }
     },
     "attachments": {
       "type": "array",
       "items": {
-        "type": "string",
-        "minLength": 1
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "letter",
+          "description"
+        ],
+        "properties": {
+          "letter": {
+            "type": "string",
+            "pattern": "^[A-Z]$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
       }
     },
     "open_questions": {
@@ -218,6 +271,136 @@
           "minItems": 3,
           "maxItems": 3,
           "uniqueItems": true
+        }
+      }
+    },
+    "contract_terms": {
+      "description": "Pricing terms from a supplied contract. A clear term replaces the company value for this request and is cited (design section 6).",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "reference",
+            "markup",
+            "pass_through"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "reference": {
+              "type": "string",
+              "minLength": 1
+            },
+            "markup": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name",
+                  "rate",
+                  "applies_to"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "rate": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "applies_to": {
+                    "type": "array",
+                    "minItems": 1,
+                    "items": {
+                      "enum": [
+                        "all",
+                        "labor",
+                        "materials",
+                        "subcontractors",
+                        "equipment",
+                        "general_conditions"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "pass_through": {
+              "type": "array",
+              "items": {
+                "enum": [
+                  "permits_and_fees",
+                  "labor",
+                  "materials",
+                  "subcontractors",
+                  "equipment",
+                  "general_conditions"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/not_applicable"
+        }
+      ]
+    },
+    "clarifications_and_exclusions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/clarification"
+      }
+    },
+    "architect_signs": {
+      "description": "Set from a supplied contract term or the PM.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "source",
+        "reference"
+      ],
+      "properties": {
+        "value": {
+          "type": "boolean"
+        },
+        "source": {
+          "enum": [
+            "contract_term",
+            "pm"
+          ]
+        },
+        "reference": {
+          "$ref": "#/$defs/text"
+        }
+      },
+      "if": {
+        "properties": {
+          "source": {
+            "const": "contract_term"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "reference": {
+            "properties": {
+              "status": {
+                "const": "known"
+              }
+            },
+            "required": [
+              "value"
+            ]
+          }
         }
       }
     }
@@ -425,12 +608,16 @@
       "additionalProperties": false,
       "required": [
         "category",
+        "trade",
+        "division",
         "description",
         "quantity",
         "unit",
         "unit_price",
         "basis",
-        "evidence"
+        "evidence",
+        "attachment",
+        "permit"
       ],
       "properties": {
         "category": {
@@ -468,8 +655,132 @@
         },
         "evidence": {
           "$ref": "#/$defs/evidence"
+        },
+        "trade": {
+          "type": "string",
+          "minLength": 1
+        },
+        "division": {
+          "$ref": "#/$defs/division"
+        },
+        "attachment": {
+          "$ref": "#/$defs/text"
+        },
+        "permit": {
+          "enum": [
+            "included_in_quote",
+            "excluded",
+            "not_stated",
+            "not_applicable"
+          ]
         }
       }
+    },
+    "clarification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prompt",
+        "trades",
+        "disposition",
+        "text"
+      ],
+      "properties": {
+        "prompt": {
+          "enum": [
+            "concealed_conditions",
+            "finish_limited",
+            "owner_upgrades",
+            "permits",
+            "hazardous_materials",
+            "other"
+          ]
+        },
+        "trades": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "The trades this covers, or [\"all\"]."
+        },
+        "disposition": {
+          "enum": [
+            "clarified",
+            "excluded",
+            "not_applicable",
+            "open_question"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "division": {
+      "description": "2-digit MasterFormat division.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "value"
+          ],
+          "properties": {
+            "status": {
+              "const": "known"
+            },
+            "value": {
+              "enum": [
+                "00",
+                "01",
+                "02",
+                "03",
+                "04",
+                "05",
+                "06",
+                "07",
+                "08",
+                "09",
+                "10",
+                "11",
+                "12",
+                "13",
+                "14",
+                "21",
+                "22",
+                "23",
+                "25",
+                "26",
+                "27",
+                "28",
+                "31",
+                "32",
+                "33",
+                "34",
+                "35",
+                "40",
+                "41",
+                "42",
+                "43",
+                "44",
+                "45",
+                "46",
+                "48"
+              ]
+            }
+          }
+        },
+        {
+          "$ref": "#/$defs/unknown"
+        },
+        {
+          "$ref": "#/$defs/not_applicable"
+        }
+      ]
     }
   }
 }

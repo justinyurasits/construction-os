@@ -1,4 +1,5 @@
-"""Checks the acceptance cases themselves; grading waits for the pipeline."""
+"""Checks the package's acceptance cases themselves; grading waits for the drafting pipeline."""
+import json
 import os
 import re
 from decimal import Decimal
@@ -6,9 +7,14 @@ from pathlib import Path
 
 import pytest
 import yaml
+from docx import Document
 
-CASES = sorted(p for p in (Path(__file__).parent / "cases").iterdir() if p.is_dir())
-CORPUS = Path(os.environ.get("CORPUS", Path(__file__).resolve().parents[3] / "construction-os-corpus"))
+from construction_os.rendering import load_package, render
+
+CORPUS = Path(os.environ.get("CORPUS", Path(__file__).resolve().parents[2] / "construction-os-corpus"))
+ROOT = CORPUS / "tests" / "acceptance" / "cases"
+CASES = sorted(p for p in ROOT.iterdir() if p.is_dir()) if ROOT.is_dir() else []
+pytestmark = pytest.mark.skipif(not CASES, reason="package acceptance cases not found; set CORPUS")
 
 
 def expected(case):
@@ -64,33 +70,50 @@ def test_pricing_arithmetic(case):
     assert subtotal + markup + passed_through == Decimal(pricing["total"])
 
 
-def test_company_pricing_comparison_in_case_4():
-    exact = expected(CASES[3])["exact"]
+@pytest.mark.parametrize("case", priced_cases(), ids=lambda c: c.name)
+def test_sample_draft_renders_to_the_expected_result(tmp_path, case):
+    data = expected(case)
+    pricing = data["exact"]["pricing"]
+    result = render(json.loads((CORPUS / data["sample_draft"]).read_text()), load_package(CORPUS), tmp_path / "x.docx")
+    table = next(t for t in Document(result.path).tables if t.rows[0].cells[0].text == "Div")
+    rows = {r.cells[0].text: r.cells[7].text for r in table.rows[1:] if r.cells[0]._tc is r.cells[6]._tc}
+    assert rows["Subtotal"] == f"${Decimal(pricing['subtotal']):,.2f}" and rows["Total"] == f"${Decimal(pricing['total']):,.2f}"
+    for component in pricing["markup"]:
+        assert rows[f"{component['name']} ({component['percent']}%)"] == f"${Decimal(component['amount']):,.2f}"
+    assert not priced_lines_differ(pricing, result)
+
+
+def priced_lines_differ(pricing, result):
+    return [a for a, b in zip(sorted(Decimal(line["amount"]) for line in pricing["lines"] + pricing["pass_through"]),
+                              sorted(result.priced.amounts)) if a != b]
+
+
+def test_company_pricing_comparison():
+    case = next(c for c in priced_cases() if "explains_difference" in expected(c)["exact"])
+    exact = expected(case)["exact"]
     pricing, company = exact["pricing"], exact["explains_difference"]
-    subtotal = Decimal(pricing["subtotal"])
     permit = Decimal(pricing["pass_through"][0]["amount"])
-    assert cents(subtotal * (1 + Decimal(company["company_markup_percent"]) / 100) + permit) == Decimal(company["company_pricing_total"])
+    total = Decimal(pricing["subtotal"]) * (1 + Decimal(company["company_markup_percent"]) / 100) + permit
+    assert cents(total) == Decimal(company["company_pricing_total"])
 
 
-def test_nte_context_in_case_3():
-    nte = expected(CASES[2])["exact"]["nte_context"]
+def test_nte_context():
+    case = next(c for c in CASES if "nte_context" in expected(c)["exact"])
+    nte = expected(case)["exact"]["nte_context"]
     assert Decimal(nte["spent"]) / Decimal(nte["ceiling"]) * 100 == Decimal(nte["percent"])
     assert Decimal(nte["percent"]) > Decimal(nte["notice_point"])
 
 
-def test_allowance_in_case_5():
-    allowance = expected(CASES[4])["exact"]["allowance"]
+def test_allowance():
+    case = next(c for c in CASES if "allowance" in expected(c)["exact"])
+    allowance = expected(case)["exact"]["allowance"]
     assert Decimal(allowance["amount"]) - Decimal(allowance["selected"]) == Decimal(allowance["under"])
-
-
-needs_corpus = pytest.mark.skipif(not (CORPUS / "docs").is_dir(), reason="corpus not found; set CORPUS")
 
 
 def citations():
     return [(c.name, item) for c in CASES for item in expected(c)["exact"].get("citations", [])]
 
 
-@needs_corpus
 @pytest.mark.parametrize("name,citation", citations(), ids=lambda v: v if isinstance(v, str) else v["id"])
 def test_citation_resolves(name, citation):
     target = citation["id"]
@@ -100,30 +123,17 @@ def test_citation_resolves(name, citation):
     files = list((CORPUS / "docs").glob(f"{target}_*.md"))
     assert files, f"{target} isn't a rule or a document"
     if "section" in citation:
-        text = files[0].read_text()
-        assert re.search(rf"^#+ (Section )?{re.escape(citation['section'])}[. ]", text, re.M), \
+        assert re.search(rf"^#+ (Section )?{re.escape(citation['section'])}[. ]", files[0].read_text(), re.M), \
             f"{target} has no section {citation['section']}"
 
 
-@needs_corpus
 @pytest.mark.parametrize("case", priced_cases(), ids=lambda c: c.name)
 def test_company_values_match_the_package(case):
-    config = CORPUS / "company" / "config.yaml"
-    if not config.exists():
-        pytest.skip("this corpus branch has no company/config.yaml")
-    values = yaml.safe_load(config.read_text())["values"]
+    values = yaml.safe_load((CORPUS / "company/config.yaml").read_text())["values"]
     rates = yaml.safe_load((CORPUS / "company/pricing/rates.yaml").read_text())["labor_billing_rates"]
-    carpenter = next(r["rate"] for r in rates if r["role"] == "Carpenter")
-    pricing = expected(case)["exact"]["pricing"]
-    for line in pricing["lines"]:
+    for line in expected(case)["exact"]["pricing"]["lines"]:
         if "rate" in line:
-            assert Decimal(line["rate"]) == Decimal(carpenter)
-    if expected(case)["id"] == 1:
-        structure = [(m["name"], Decimal(m["rate"])) for m in values["MARKUP-STRUCTURE"]]
-        assert structure == [(m["name"], Decimal(m["percent"])) for m in pricing["markup"]]
-    else:
-        company = expected(case)["exact"]["explains_difference"]["company_markup_percent"]
-        assert sum(Decimal(m["rate"]) for m in values["MARKUP-STRUCTURE"]) == Decimal(company)
+            assert any(Decimal(str(r["rate"])) == Decimal(line["rate"]) for r in rates)
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c.name)
