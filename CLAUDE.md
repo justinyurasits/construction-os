@@ -1,12 +1,20 @@
-# Construction OS
+# Document workbench
 
 ## What this is
 
-The application. It generates governed construction documents from a customer package. Beacon Hill Interiors' package is the construction-os-corpus repository, next to this one.
+The Construction OS document workbench: the application that generates governed construction documents from a customer package. Beacon Hill Interiors' package is the construction-os-corpus repository, next to this one. The design docs are in the construction-os-design repository, also next to this one.
 
 ## Build spec
 
-../construction-os-corpus/design/pco-technical-design.md is the build spec. Read it, and ../construction-os-corpus/design/product-brief.md, before proposing a plan or next step. They are snapshots; check the date at the top.
+Before proposing a plan or next step, read from ../construction-os-design/construction-os/:
+
+- document-workbench/pco-design.md: the build spec for the PCO slice
+- brief.md: the governing product reference
+- document-workbench/design.md: the architecture and the decision log
+- document-workbench/plan.md: the work and what's next
+- principles.md: the rules every design decision follows
+
+Pull construction-os-design first. Its files are synced from Claude Docs; the header at the top of each gives the revision and sync date, and the Claude Doc linked there is current if the two differ. If something in this repo or the corpus contradicts them, say so; don't guess.
 
 ## Checks
 

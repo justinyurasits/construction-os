@@ -1,8 +1,18 @@
-# Construction OS
+# Document workbench
 
-The application. It generates governed construction documents from a customer package, and reads only that package. Beacon Hill Interiors' package is in `construction-os-corpus`.
+The Construction OS document workbench: the application that generates governed construction documents from a customer package, and reads only that package. Beacon Hill Interiors' package is in `construction-os-corpus`.
 
-The build spec is `../construction-os-corpus/design/pco-technical-design.md`.
+The design docs are in [`construction-os-design`](https://github.com/justinyurasits/construction-os-design/tree/main/construction-os/document-workbench). The build spec is `../construction-os-design/construction-os/document-workbench/pco-design.md`.
+
+Clone the three repositories side by side:
+
+```
+construction-os-corpus/
+construction-os-design/
+document-workbench/
+```
+
+The Python package is still named `construction_os`; renaming it is a separate change.
 
 ## Setup
 
