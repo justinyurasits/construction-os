@@ -1,5 +1,4 @@
 import json
-from decimal import Decimal
 from pathlib import Path
 
 import pytest
@@ -154,8 +153,20 @@ def test_missing_template_warns_but_passes(corpus):
 
 # sample_draft
 
-def test_real_sample_passes():
-    assert v.check_sample_draft().passed
+def write_sample(corpus, change):
+    path = corpus / "samples/pco_example_draft.json"
+    draft = json.loads(path.read_text())
+    change(draft)
+    path.write_text(json.dumps(draft))
+
+
+def test_sample_passes(corpus):
+    assert v.check_sample_drafts(corpus).passed
+
+
+def test_samples_folder_with_no_drafts_fails(corpus):
+    (corpus / "samples/pco_example_draft.json").unlink()
+    assert "no drafts" in errors(v.check_sample_drafts(corpus))
 
 
 @pytest.mark.parametrize("change", [
@@ -166,69 +177,61 @@ def test_real_sample_passes():
     lambda d: d.pop("reason"),
     lambda d: d["schedule"].update(extension_days={"status": "known", "value": -1}),
     lambda d: d.update(reason={"status": "unknown"}),
+    lambda d: d["cost_lines"][0].update(division={"status": "known", "value": "16"}),
+    lambda d: d["cost_lines"][0].update(division={"status": "known", "value": "6"}),
+    lambda d: d.pop("architect_signs"),
+    lambda d: d.update(architect_signs={"value": "yes", "source": "pm", "reference": {"status": "not_applicable", "reason": "x"}}),
+    lambda d: d.update(architect_signs={"value": True, "source": "contract_term", "reference": {"status": "unknown", "question": "Which clause?"}}),
 ])
-def test_sample_fails(tmp_path, change):
-    draft = json.loads(v.SAMPLE_DRAFT.read_text())
-    change(draft)
-    path = tmp_path / "draft.json"
-    path.write_text(json.dumps(draft))
-    assert not v.check_sample_draft(path).passed
+def test_sample_fails(corpus, change):
+    write_sample(corpus, change)
+    assert not v.check_sample_drafts(corpus).passed
 
 
-def test_sample_matches_the_worked_example():
-    """Design section 6: subtotal $2,170, markup $455.70, total $2,625.70."""
-    draft = json.loads(v.SAMPLE_DRAFT.read_text())
-    subtotal = sum(Decimal(str(line["quantity"]["value"])) * Decimal(str(line["unit_price"]["value"]))
-                   for line in draft["cost_lines"])
-    markup = subtotal * Decimal("0.21")
-    assert (subtotal, markup, subtotal + markup) == (Decimal(2170), Decimal("455.70"), Decimal("2625.70"))
+@pytest.mark.parametrize("division", ["01", "06", "08", "09", "26"])
+def test_masterformat_divisions_pass(corpus, division):
+    write_sample(corpus, lambda d: d["cost_lines"][0].update(division={"status": "known", "value": division}))
+    assert v.check_sample_drafts(corpus).passed
 
 
 # draft_consistency
-
-def edited_sample(tmp_path, change):
-    draft = json.loads(v.SAMPLE_DRAFT.read_text())
-    change(draft)
-    path = tmp_path / "edited.json"
-    path.write_text(json.dumps(draft))
-    return path
-
 
 def test_consistency_passes_on_the_sample(corpus):
     assert v.check_draft_consistency(corpus).passed
 
 
-def test_draft_signature_order_is_flagged(corpus, tmp_path):
-    path = edited_sample(tmp_path, lambda d: d["signatures"].update(order=["client", "executive_cosign", "contractor_pm"]))
-    assert "draft signature order" in errors(v.check_draft_consistency(corpus, path))
+def test_draft_signature_order_is_flagged(corpus):
+    write_sample(corpus, lambda d: d["signatures"].update(order=["client", "executive_cosign", "contractor_pm"]))
+    assert "signature order" in errors(v.check_draft_consistency(corpus))
 
 
 def test_setting_after_client_flags_the_definition_and_draft(corpus):
     replace(corpus / "company/config.yaml", "cosign_timing: before_client", "cosign_timing: after_client")
     message = errors(v.check_draft_consistency(corpus))
-    assert "CHG-53-DEF" in message and "draft signature order" in message
+    assert "CHG-53-DEF" in message and "signature order" in message
 
 
-def test_draft_markup_presentation_must_match_the_setting(corpus, tmp_path):
-    path = edited_sample(tmp_path, lambda d: d["markup_presentation"].update(value="combined"))
-    assert "no contract term is cited" in errors(v.check_draft_consistency(corpus, path))
+def test_draft_markup_presentation_must_match_the_setting(corpus):
+    write_sample(corpus, lambda d: d["markup_presentation"].update(value="combined"))
+    assert "no contract term is cited" in errors(v.check_draft_consistency(corpus))
 
 
 def contract_term(draft):
     draft["markup_presentation"] = {"value": "combined", "source": "contract_term",
-                                    "reference": {"status": "known", "value": "Prime Agreement 7.2"}}
+                                    "reference": {"status": "known", "value": "Sample clause 7.2"}}
 
 
-def test_cited_contract_term_wins_over_the_setting(corpus, tmp_path):
-    path = edited_sample(tmp_path, contract_term)
-    assert v.check_draft_consistency(corpus, path).passed and v.check_sample_draft(path).passed
+def test_cited_contract_term_wins_over_the_setting(corpus):
+    write_sample(corpus, contract_term)
+    assert v.check_draft_consistency(corpus).passed and v.check_sample_drafts(corpus).passed
 
 
-def test_contract_term_without_a_reference_fails_the_schema(tmp_path):
+def test_contract_term_without_a_reference_fails_the_schema(corpus):
     def change(draft):
         contract_term(draft)
         draft["markup_presentation"]["reference"] = {"status": "unknown", "question": "Which clause?"}
-    assert not v.check_sample_draft(edited_sample(tmp_path, change)).passed
+    write_sample(corpus, change)
+    assert not v.check_sample_drafts(corpus).passed
 
 
 # command

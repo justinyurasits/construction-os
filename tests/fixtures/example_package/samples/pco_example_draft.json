@@ -1,0 +1,57 @@
+{
+  "definition": "CHG-53-DEF",
+  "header": {
+    "pco_number": {"status": "known", "value": "PCO-007"},
+    "date": {"status": "known", "value": "2030-01-15"},
+    "project": {"status": "known", "value": "Sample House"},
+    "project_address": {"status": "unknown", "question": "What is the project address?"},
+    "owner": {"status": "unknown", "question": "Who is the client?"},
+    "contract_reference": {"status": "not_applicable", "reason": "No contract supplied."},
+    "location": {"status": "known", "value": "Kitchen"},
+    "trades": {"status": "known", "value": ["Carpentry", "Electrical"]},
+    "change_event_ref": {"status": "unknown", "question": "Which change event?"},
+    "requested_approval_date": {"status": "known", "value": "2030-01-20"},
+    "cause_category": {"status": "known", "value": "Owner-Directed"}
+  },
+  "description": {"status": "known", "value": "Add a sample outlet."},
+  "reason": {"status": "unknown", "question": "Why is this change needed?"},
+  "scope": {
+    "inclusions": {"status": "known", "value": ["Sample carpentry", "Sample electrical"]},
+    "deleted_scope": {"status": "known", "value": []},
+    "assumptions": ["A sample assumption."]
+  },
+  "clarifications_and_exclusions": [
+    {"prompt": "concealed_conditions", "trades": ["all"], "disposition": "excluded", "text": "Sample concealed conditions are excluded."},
+    {"prompt": "permits", "trades": ["electrical"], "disposition": "open_question", "text": "Electrical permit: [included / excluded]."},
+    {"prompt": "permits", "trades": ["carpentry", "materials"], "disposition": "not_applicable", "text": "No permit for this trade."}
+  ],
+  "pricing_basis": "lump_sum",
+  "nte_amount": {"status": "not_applicable", "reason": "Lump sum."},
+  "cost_lines": [
+    {"category": "labor", "trade": "carpentry", "division": {"status": "known", "value": "06"}, "description": "Sample carpentry",
+     "quantity": {"status": "known", "value": 8}, "unit": {"status": "known", "value": "HR"}, "unit_price": {"status": "known", "value": 100},
+     "basis": "hours_x_rate", "evidence": {"source": "rate_table", "reference": {"status": "known", "value": "Company rate"}, "date": {"status": "not_applicable", "reason": "Current rate."}},
+     "attachment": {"status": "not_applicable", "reason": "None."}, "permit": "not_applicable"},
+    {"category": "subcontractors", "trade": "electrical", "division": {"status": "known", "value": "26"}, "description": "Sample electrical",
+     "quantity": {"status": "known", "value": 1}, "unit": {"status": "known", "value": "LS"}, "unit_price": {"status": "known", "value": 1000},
+     "basis": "quote", "evidence": {"source": "supplied_quote", "reference": {"status": "known", "value": "Sample quote"}, "date": {"status": "unknown", "question": "What is the quote date?"}},
+     "attachment": {"status": "known", "value": "A"}, "permit": "not_stated"},
+    {"category": "materials", "trade": "materials", "division": {"status": "unknown", "question": "Which division?"}, "description": "Sample materials",
+     "quantity": {"status": "known", "value": 1}, "unit": {"status": "known", "value": "LS"}, "unit_price": {"status": "known", "value": 500},
+     "basis": "estimate", "evidence": {"source": "pm_notes", "reference": {"status": "known", "value": "PM notes"}, "date": {"status": "not_applicable", "reason": "Estimate."}},
+     "attachment": {"status": "not_applicable", "reason": "None."}, "permit": "not_applicable"}
+  ],
+  "contract_terms": {"status": "not_applicable", "reason": "No contract supplied."},
+  "markup_presentation": {"value": "itemized", "source": "company_setting", "reference": {"status": "not_applicable", "reason": "Company setting."}},
+  "architect_signs": {"value": false, "source": "pm", "reference": {"status": "not_applicable", "reason": "Not required."}},
+  "signatures": {"order": ["executive_cosign", "client", "contractor_pm"]},
+  "schedule": {
+    "extension_days": {"status": "known", "value": 0},
+    "contract_duration_days": {"status": "not_applicable", "reason": "No extension."},
+    "critical_path": {"status": "known", "value": "no"},
+    "completion_date": {"status": "known", "value": "No change"},
+    "authorization_by": {"status": "unknown", "question": "By what date must the client authorize this?"}
+  },
+  "attachments": [{"letter": "A", "description": "Sample quote"}],
+  "open_questions": ["A sample open question."]
+}

@@ -2,6 +2,8 @@ from pathlib import Path
 
 import pytest
 
+EXAMPLE_DRAFT = Path(__file__).parent / "fixtures/example_package/samples/pco_example_draft.json"
+
 ENTRY = """id: {id}
 kind: {kind}
 value_type: {vt}
@@ -49,6 +51,8 @@ def corpus(tmp_path) -> Path:
         "  RATES: {from: company/pricing/rates.yaml, key: rates}\n"
         "  AUTH-WRITTEN.cosign_timing: before_client\n"
         "  MARKUP-PRESENTATION: itemized\n")
+    (tmp_path / "samples").mkdir()
+    (tmp_path / "samples/pco_example_draft.json").write_text(EXAMPLE_DRAFT.read_text())
     (tmp_path / "definitions/CHG-53-DEF.yaml").write_text(
         "id: CHG-53-DEF\nprocedure: CHG-53\ndepends_on:\n"
         "  - {id: AUTH-WRITTEN, applies_when: always}\n"
@@ -56,3 +60,21 @@ def corpus(tmp_path) -> Path:
         "  - {id: NTE-CHECKPOINTS, applies_when: nte_present}\n"
         "sections:\n  - {id: signatures, fields: [executive_cosign, client, contractor_pm]}\n")
     return tmp_path
+
+
+@pytest.fixture
+def example_root(tmp_path) -> Path:
+    """The fictional company's package, with its template built."""
+    import shutil
+
+    from fixtures.build_template import build
+
+    root = tmp_path / "example_package"
+    shutil.copytree(Path(__file__).parent / "fixtures" / "example_package", root)
+    build(root)
+    return root
+
+
+@pytest.fixture
+def example_draft_text() -> str:
+    return (Path(__file__).parent / "fixtures/example_package/samples/pco_example_draft.json").read_text()

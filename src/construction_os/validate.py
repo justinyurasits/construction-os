@@ -1,4 +1,4 @@
-"""Validate a customer package and the sample draft.
+"""Validate a customer package and its sample drafts.
 
   python -m construction_os.validate --corpus ../construction-os-corpus
 
@@ -18,7 +18,6 @@ import yaml
 REPO = Path(__file__).resolve().parents[2]
 ENTRY_SCHEMA = REPO / "schemas" / "registry_entry.schema.json"
 DRAFT_SCHEMA = REPO / "schemas" / "pco_draft.schema.json"
-SAMPLE_DRAFT = REPO / "samples" / "pco_sample_draft.json"
 DEFINITION = "definitions/CHG-53-DEF.yaml"
 CONFIG = "company/config.yaml"
 DURATION = re.compile(r"^\d+ (hours?|days?|weeks?|months?)$")
@@ -350,14 +349,25 @@ def check_definition_dependencies(corpus):
     return result
 
 
-def check_sample_draft(sample=SAMPLE_DRAFT, schema=DRAFT_SCHEMA):
-    result = Result("sample_draft")
+def sample_paths(corpus):
+    return sorted((Path(corpus) / "samples").glob("*_draft.json"))
+
+
+def draft_schema_errors(path, schema=DRAFT_SCHEMA):
     validator = jsonschema.Draft202012Validator(json.loads(Path(schema).read_text()))
-    draft = json.loads(Path(sample).read_text())
-    for problem in sorted(validator.iter_errors(draft), key=lambda e: list(e.path)):
-        location = ".".join(str(p) for p in problem.path) or "draft"
-        result.errors.append(f"{location}: {problem.message}")
-    result.summary = f"{len(draft.get('cost_lines', []))} cost lines"
+    draft = json.loads(Path(path).read_text())
+    return [f"{Path(path).name}: {'.'.join(str(p) for p in problem.path) or 'draft'}: {problem.message}"
+            for problem in sorted(validator.iter_errors(draft), key=lambda e: list(e.path))]
+
+
+def check_sample_drafts(corpus):
+    result = Result("sample_draft")
+    paths = sample_paths(corpus)
+    if not paths:
+        result.errors.append("samples/ has no drafts")
+    for path in paths:
+        result.errors += draft_schema_errors(path)
+    result.summary = f"{len(paths)} drafts"
     return result
 
 
@@ -368,8 +378,8 @@ def signature_fields(definition):
     return None
 
 
-def check_draft_consistency(corpus, sample=SAMPLE_DRAFT):
-    """The definition and the sample draft against the company's settings."""
+def check_draft_consistency(corpus):
+    """The definition and the sample drafts against the company's settings."""
     result = Result("draft_consistency")
     values = (load_yaml(corpus / CONFIG) or {}).get("values") or {}
     timing = values.get("AUTH-WRITTEN.cosign_timing")
@@ -377,18 +387,19 @@ def check_draft_consistency(corpus, sample=SAMPLE_DRAFT):
     expected = SIGNATURE_ORDER.get(timing)
     if expected is None:
         result.errors.append(f"AUTH-WRITTEN.cosign_timing: no signature order for {timing!r}")
-    draft = json.loads(Path(sample).read_text())
     definition = load_yaml(corpus / DEFINITION) or {}
     if expected and signature_fields(definition) != expected:
         result.errors.append(f"{DEFINITION}: signatures {signature_fields(definition)} don't match {timing}: {expected}")
-    order = (draft.get("signatures") or {}).get("order")
-    if expected and order != expected:
-        result.errors.append(f"draft signature order {order} doesn't match {timing}: {expected}")
-    markup = draft.get("markup_presentation") or {}
-    if markup.get("source") != "contract_term" and markup.get("value") != presentation:
-        result.errors.append(f"draft markup_presentation {markup.get('value')!r} doesn't match "
-                             f"MARKUP-PRESENTATION {presentation!r}, and no contract term is cited")
-    result.summary = f"signatures {timing}, markup {markup.get('value')}"
+    for path in sample_paths(corpus):
+        draft = json.loads(path.read_text())
+        order = (draft.get("signatures") or {}).get("order")
+        if expected and order != expected:
+            result.errors.append(f"{path.name}: signature order {order} doesn't match {timing}: {expected}")
+        markup = draft.get("markup_presentation") or {}
+        if markup.get("source") != "contract_term" and markup.get("value") != presentation:
+            result.errors.append(f"{path.name}: markup_presentation {markup.get('value')!r} doesn't match "
+                                 f"MARKUP-PRESENTATION {presentation!r}, and no contract term is cited")
+    result.summary = f"signatures {timing}, markup {presentation}"
     return result
 
 
@@ -400,17 +411,17 @@ def guarded(name, check, *args):
         return Result(name, "unreadable", [str(error).split("\n")[0]])
 
 
-def run_checks(corpus, sample=SAMPLE_DRAFT):
+def run_checks(corpus):
     corpus = Path(corpus)
     return [guarded("registry_entries", check_registry_entries, corpus),
             guarded("config_values", check_config_values, corpus),
             guarded("definition_dependencies", check_definition_dependencies, corpus),
-            guarded("sample_draft", check_sample_draft, sample),
-            guarded("draft_consistency", check_draft_consistency, corpus, sample)]
+            guarded("sample_draft", check_sample_drafts, corpus),
+            guarded("draft_consistency", check_draft_consistency, corpus)]
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="Validate a customer package and the sample draft.")
+    parser = argparse.ArgumentParser(description="Validate a customer package and its sample drafts.")
     parser.add_argument("--corpus", required=True, help="path to the customer package")
     args = parser.parse_args(argv)
     results = run_checks(args.corpus)
